@@ -59,6 +59,11 @@ COMPILE () {
 
 RUNTESTS () {
     cd $1;
+    if [ ! -f $SOURCE_FILE_NAME ];
+    then
+        echo "$1: $SOURCE_FILE_NAME not found!";
+        return;
+    fi;
     COMPILE $1;
     echo "$1: Testing input files ...";
     for FOLDER in *;
