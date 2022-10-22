@@ -14,7 +14,7 @@ SUCCESS_MESSAGE () {
     echo -e "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
 }
 
-WARNING_MESSAGE () {
+ERROR_MESSAGE () {
     echo -e "${RED_BOLD_COLOR}${1}${NO_COLOR}";
 }
 
@@ -26,14 +26,14 @@ SEPARATOR () {
     printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -;
 } ;
 
-GETCOLOR () {
+GET_PREFIX_COLOR () {
     echo -e "\033[0;3$((1 + $1 % 5))m";
 } ;
 
-TESTCASE () {
+TEST_CASE () {
     if [ -d $2 ];
     then
-        echo -n "$PREFIX Testing $2 inputs ... ";
+        echo -en "$PREFIX Testing $2 inputs ... ";
         SUCCESSFUL_TEST_COUNT=0;
         MAXIMUM_TEST_COUNT=`echo "$2/"*"$3" | wc -w`;
         for INPUT_FILE in "$2/"*"$3";
@@ -61,7 +61,7 @@ TESTCASE () {
 } ;
 
 COMPILE () {
-    echo -n "$1 Compiling source code ... ";
+    echo -en "$1 Compiling source code ... ";
     if [ ! -f $SOURCE_FILE_NAME ];
     then
         WARNING_MESSAGE "NOT FOUND";
@@ -89,26 +89,52 @@ COMPILE () {
     fi;
 } ;
 
-RUNTESTS () {
+RUN_TESTS () {
     cd $2;
-    PREFIX="$(GETCOLOR $1)$2$(echo -e '\033[0m'):";
+    PREFIX="$(GET_PREFIX_COLOR $1)$2${NO_COLOR}:";
     COMPILE $PREFIX;
     for FOLDER in *;
     do
         if [ -d $FOLDER ];
         then
-            TESTCASE "$PREFIX" "$FOLDER" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
+            TEST_CASE "$PREFIX" "$FOLDER" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
         fi;
     done;
     cd ..;
 } ;
 
-COUNT=1
-for FOLDER in *;
-do
-    if [ -d $FOLDER ];
+TEST_ALL_FOLDERS () {
+    COUNT=1
+    for FOLDER in */;
+    do
+        if [ -d $FOLDER ];
+        then
+            RUN_TESTS $COUNT $FOLDER;
+        fi;
+        COUNT=$((COUNT+1));
+    done;
+} ;
+
+TEST_LATEST_FOLDER () {
+    FOLDER_COUNT=$(ls -d */ 2>/dev/null | wc -l);
+    if [ $FOLDER_COUNT -eq 0 ];
     then
-        RUNTESTS $COUNT $FOLDER;
+        ERROR_MESSAGE "No folder found!";
+        exit 1;
     fi;
-    COUNT=$((COUNT+1));
-done;
+    LATEST=$(ls -td * | head -1);
+    RUN_TESTS 1 "$LATEST";
+} ;
+
+case $1 in
+    -l|--latest)
+        TEST_LATEST_FOLDER;
+        ;;
+    -?*)
+        ERROR_MESSAGE "Unknown option: $1";
+        exit 1;
+        ;;
+    *)
+        TEST_ALL_FOLDERS;
+        ;;
+esac
