@@ -12,6 +12,9 @@ GREEN_BOLD_COLOR="\033[1;32m";
 YELLOW_BOLD_COLOR="\033[1;33m";
 NO_COLOR="\033[0;0m";
 
+DETAILED_TEST_OUTPUT=false;
+LATEST_FOLDER_ONLY=false;
+
 SUCCESS_MESSAGE () {
     echo -e "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
 }
@@ -29,36 +32,56 @@ SEPARATOR () {
 } ;
 
 GET_PREFIX_COLOR () {
-    echo -e "\033[0;3$((1 + $1 % 5))m";
+    echo -e "\033[0;3$((1 + $1 % 6))m";
 } ;
 
 TEST_CASE () {
     if [ -d "$2" ];
     then
-        echo -en "$PREFIX Testing $2 inputs ... ";
+        if [ "$DETAILED_TEST_OUTPUT" = false ];
+        then
+            echo -en "$1 Testing $2 inputs ... ";
+        fi;
         SUCCESSFUL_TEST_COUNT=0;
         MAXIMUM_TEST_COUNT=$(echo "$2/"*"$3" | wc -w);
         for INPUT_FILE in "$2/"*"$3";
         do
             if [ -f "$INPUT_FILE" ];
             then
+                if [ "$DETAILED_TEST_OUTPUT" = true ];
+                then
+                    echo -en "$1 Testing $INPUT_FILE ... ";
+                fi;
                 OUTPUT_FILE=${INPUT_FILE%"$3"}$4;
                 ./$COMPILED_FILE_NAME < "$INPUT_FILE" > "$TEMPORARY_FILE_NAME" || exit 1;
                 OUTPUT_DIFFERENCE=$(diff "$OUTPUT_FILE" "$TEMPORARY_FILE_NAME");
                 if [ ! $? -eq 0 ];
                 then
-                    WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT, failed on $INPUT_FILE";
+                    if [ "$DETAILED_TEST_OUTPUT" = true ];
+                    then
+                        WARNING_MESSAGE "FAILED";
+                    else
+                        WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT, failed on $INPUT_FILE";
+                    fi;
                     SEPARATOR;
                     cat "$INPUT_FILE";
                     SEPARATOR;
                     echo "$OUTPUT_DIFFERENCE";
                     SEPARATOR;
                     exit 1;
+                else
+                    if [ "$DETAILED_TEST_OUTPUT" = true ];
+                    then
+                        SUCCESS_MESSAGE "OK";
+                    fi;
                 fi;
                 SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
             fi;
         done;
-        SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+        if [ "$DETAILED_TEST_OUTPUT" = false ];
+        then
+            SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+        fi;
     fi;
 } ;
 
@@ -131,24 +154,44 @@ TEST_LATEST_FOLDER () {
 LIST_ALL_OPTIONS () {
     COUNT=1;
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-h$NO_COLOR, $COLOR--help$NO_COLOR: Show helpful information";
+    echo -e "$COLOR-h$NO_COLOR, $COLOR--help$NO_COLOR: Show help and exit";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
     echo -e "$COLOR-l$NO_COLOR, $COLOR--latest$NO_COLOR: Perform tests only on latest folder";
+    COUNT=$((COUNT+1));
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    echo -e "$COLOR-d$NO_COLOR, $COLOR--detailed$NO_COLOR: Show detailed test output";
 } ;
 
-case $1 in
-    -h|--help)
-        LIST_ALL_OPTIONS;
-        ;;
-    -l|--latest)
-        TEST_LATEST_FOLDER;
-        ;;
-    -?*)
-        ERROR_MESSAGE "Unknown option: '$1', use '--help' to get list of usable options";
-        exit 1;
-        ;;
-    *)
-        TEST_ALL_FOLDERS;
-        ;;
-esac
+while :; do
+    case $1 in
+        -h|--help)
+            LIST_ALL_OPTIONS;
+            exit;
+            ;;
+        -l|--latest)
+            LATEST_FOLDER_ONLY=true;
+            ;;
+        -d|--detailed)
+            DETAILED_TEST_OUTPUT=true;
+            ;;
+        --)
+            shift;
+            break;
+            ;;
+        -?*)
+            ERROR_MESSAGE "Unknown option: '$1', use '--help' to get list of usable options";
+            exit 1;
+            ;;
+        *)
+            break;
+    esac
+    shift;
+done
+
+if $LATEST_FOLDER_ONLY;
+then
+    TEST_LATEST_FOLDER;
+else
+    TEST_ALL_FOLDERS;
+fi;
