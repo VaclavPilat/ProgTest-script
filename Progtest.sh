@@ -33,6 +33,7 @@ GETCOLOR () {
 TESTCASE () {
     if [ -d $2 ];
     then
+        echo -n "$PREFIX Testing $2 inputs ... ";
         SUCCESSFUL_TEST_COUNT=0;
         MAXIMUM_TEST_COUNT=`echo "$2/"*"$3" | wc -w`;
         for INPUT_FILE in "$2/"*"$3";
@@ -44,8 +45,7 @@ TESTCASE () {
                 OUTPUT_DIFFERENCE=`diff "$OUTPUT_FILE" "$TEMPORARY_FILE_NAME"`;
                 if [ ! $? -eq 0 ];
                 then
-                    echo "$1 Successfully tried $SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT inputs.";
-                    echo "$1 Failed test on $INPUT_FILE";
+                    WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT, failed on $INPUT_FILE";
                     SEPARATOR;
                     cat "$INPUT_FILE";
                     SEPARATOR;
@@ -56,7 +56,7 @@ TESTCASE () {
                 SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
             fi;
         done;
-        echo "$1 Successfully tried $SUCCESSFUL_TEST_COUNT $2 inputs.";
+        SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
     fi;
 } ;
 
@@ -93,7 +93,6 @@ RUNTESTS () {
     cd $2;
     PREFIX="$(GETCOLOR $1)$2$(echo -e '\033[0m'):";
     COMPILE $PREFIX;
-    echo "$PREFIX Testing input files ...";
     for FOLDER in *;
     do
         if [ -d $FOLDER ];
