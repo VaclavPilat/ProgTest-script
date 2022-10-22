@@ -1,3 +1,5 @@
+#!/bin/bash
+
 SOURCE_FILE_NAME="Main.c";
 COMPILED_FILE_NAME="a.out";
 TEMPORARY_FILE_NAME="/tmp/tmp.txt";
@@ -31,18 +33,18 @@ GET_PREFIX_COLOR () {
 } ;
 
 TEST_CASE () {
-    if [ -d $2 ];
+    if [ -d "$2" ];
     then
         echo -en "$PREFIX Testing $2 inputs ... ";
         SUCCESSFUL_TEST_COUNT=0;
-        MAXIMUM_TEST_COUNT=`echo "$2/"*"$3" | wc -w`;
+        MAXIMUM_TEST_COUNT=$(echo "$2/"*"$3" | wc -w);
         for INPUT_FILE in "$2/"*"$3";
         do
-            if [ -f $INPUT_FILE ];
+            if [ -f "$INPUT_FILE" ];
             then
-                OUTPUT_FILE=${INPUT_FILE%$3}$4;
+                OUTPUT_FILE=${INPUT_FILE%"$3"}$4;
                 ./$COMPILED_FILE_NAME < "$INPUT_FILE" > "$TEMPORARY_FILE_NAME" || exit 1;
-                OUTPUT_DIFFERENCE=`diff "$OUTPUT_FILE" "$TEMPORARY_FILE_NAME"`;
+                OUTPUT_DIFFERENCE=$(diff "$OUTPUT_FILE" "$TEMPORARY_FILE_NAME");
                 if [ ! $? -eq 0 ];
                 then
                     WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT, failed on $INPUT_FILE";
@@ -90,12 +92,12 @@ COMPILE () {
 } ;
 
 RUN_TESTS () {
-    cd $2;
-    PREFIX="$(GET_PREFIX_COLOR $1)$2${NO_COLOR}:";
-    COMPILE $PREFIX;
+    cd "$2" || exit 1;
+    PREFIX="$(GET_PREFIX_COLOR "$1")$2${NO_COLOR}:";
+    COMPILE "$PREFIX";
     for FOLDER in *;
     do
-        if [ -d $FOLDER ];
+        if [ -d "$FOLDER" ];
         then
             TEST_CASE "$PREFIX" "$FOLDER" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
         fi;
@@ -105,19 +107,19 @@ RUN_TESTS () {
 
 TEST_ALL_FOLDERS () {
     COUNT=1
-    for FOLDER in */;
+    for FOLDER in *;
     do
-        if [ -d $FOLDER ];
+        if [ -d "$FOLDER" ];
         then
-            RUN_TESTS $COUNT $FOLDER;
+            RUN_TESTS $COUNT "$FOLDER";
         fi;
         COUNT=$((COUNT+1));
     done;
 } ;
 
 TEST_LATEST_FOLDER () {
-    FOLDER_COUNT=$(ls -d */ 2>/dev/null | wc -l);
-    if [ $FOLDER_COUNT -eq 0 ];
+    FOLDER_COUNT=$(ls -d * 2>/dev/null | wc -l);
+    if [ "$FOLDER_COUNT" -eq 0 ];
     then
         ERROR_MESSAGE "No folder found!";
         exit 1;
