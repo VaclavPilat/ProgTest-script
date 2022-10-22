@@ -5,6 +5,23 @@ HASH_FILE_NAME="hash.txt";
 INPUT_FILE_SUFFIX="_in.txt";
 OUTPUT_FILE_SUFFIX="_out.txt";
 
+RED_BOLD_COLOR="\033[1;31m";
+GREEN_BOLD_COLOR="\033[1;32m";
+YELLOW_BOLD_COLOR="\033[1;33m";
+NO_COLOR="\033[0;0m";
+
+SUCCESS_MESSAGE () {
+    echo -e "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
+}
+
+WARNING_MESSAGE () {
+    echo -e "${RED_BOLD_COLOR}${1}${NO_COLOR}";
+}
+
+WARNING_MESSAGE () {
+    echo -e "${YELLOW_BOLD_COLOR}${1}${NO_COLOR}";
+}
+
 SEPARATOR () {
     printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -;
 } ;
@@ -44,6 +61,12 @@ TESTCASE () {
 } ;
 
 COMPILE () {
+    echo -n "$1 Compiling source code ... ";
+    if [ ! -f $SOURCE_FILE_NAME ];
+    then
+        WARNING_MESSAGE "NOT FOUND";
+        exit 1;
+    fi;
     if [ -f $COMPILED_FILE_NAME ];
     then
         md5sum "$SOURCE_FILE_NAME" > "$TEMPORARY_FILE_NAME";
@@ -52,23 +75,23 @@ COMPILE () {
     diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_NAME" > /dev/null 2> /dev/null;
     if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ];
     then
-        echo "$1 Compiling source code ...";
         g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" || exit 1;
+        if [ $? -eq 0 ];
+        then
+            SUCCESS_MESSAGE "OK";
+        else
+            ERROR_MESSAGE "FAILED";
+        fi;
         md5sum "$SOURCE_FILE_NAME" > "$HASH_FILE_NAME";
         md5sum "$COMPILED_FILE_NAME" >> "$HASH_FILE_NAME";
     else
-        echo "$1 Skipped compilation (not needed).";
+        SUCCESS_MESSAGE "SKIPPED";
     fi;
 } ;
 
 RUNTESTS () {
     cd $2;
     PREFIX="$(GETCOLOR $1)$2$(echo -e '\033[0m'):";
-    if [ ! -f $SOURCE_FILE_NAME ];
-    then
-        echo "$PREFIX $SOURCE_FILE_NAME not found!";
-        return;
-    fi;
     COMPILE $PREFIX;
     echo "$PREFIX Testing input files ...";
     for FOLDER in *;
