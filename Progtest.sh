@@ -120,11 +120,11 @@ RUN_TESTS () {
     cd "$2" || exit 1;
     PREFIX="$(GET_PREFIX_COLOR "$1")$2${NO_COLOR}:";
     COMPILE "$PREFIX";
-    for FOLDER in *;
+    for FOLDER in */;
     do
         if [ -d "$FOLDER" ];
         then
-            TEST_CASE "$PREFIX" "$FOLDER" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
+            TEST_CASE "$PREFIX" "${FOLDER::-1}" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
         fi;
     done;
     cd ..;
@@ -132,13 +132,13 @@ RUN_TESTS () {
 
 TEST_ALL_FOLDERS () {
     COUNT=1
-    for FOLDER in *;
+    for FOLDER in */;
     do
         if [ -d "$FOLDER" ];
         then
-            RUN_TESTS $COUNT "$FOLDER";
+            RUN_TESTS $COUNT "${FOLDER::-1}";
+            COUNT=$((COUNT+1));
         fi;
-        COUNT=$((COUNT+1));
     done;
 } ;
 
@@ -149,8 +149,8 @@ TEST_LATEST_FOLDER () {
         ERROR_MESSAGE "No folder found!";
         exit 1;
     fi;
-    LATEST=$(ls -td * | head -1);
-    RUN_TESTS 1 "$LATEST";
+    LATEST=$(ls -td */ | head -1);
+    RUN_TESTS 1 "${LATEST::-1}";
 } ;
 
 LIST_ALL_OPTIONS () {
