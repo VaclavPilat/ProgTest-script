@@ -12,6 +12,8 @@ GREEN_BOLD_COLOR="\033[1;32m";
 YELLOW_BOLD_COLOR="\033[1;33m";
 NO_COLOR="\033[0;0m";
 
+TIMEFORMAT='%3lR';
+
 DETAILED_TEST_OUTPUT=false;
 LATEST_FOLDER_ONLY=false;
 
@@ -53,13 +55,13 @@ TEST_CASE () {
                     echo -en "$1 Testing $INPUT_FILE ... ";
                 fi;
                 OUTPUT_FILE=${INPUT_FILE%"$3"}$4;
-                ./$COMPILED_FILE_NAME < "$INPUT_FILE" > "$TEMPORARY_FILE_NAME" || exit 1;
+                TIME_SPENT=$({ time ./$COMPILED_FILE_NAME < "$INPUT_FILE" > "$TEMPORARY_FILE_NAME"; } 2>&1 );
                 OUTPUT_DIFFERENCE=$(diff "$OUTPUT_FILE" "$TEMPORARY_FILE_NAME");
                 if [ ! $? -eq 0 ];
                 then
                     if [ "$DETAILED_TEST_OUTPUT" = true ];
                     then
-                        WARNING_MESSAGE "FAILED";
+                        WARNING_MESSAGE "FAILED, $TIME_SPENT";
                     else
                         WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT, failed on $INPUT_FILE";
                     fi;
@@ -72,7 +74,7 @@ TEST_CASE () {
                 else
                     if [ "$DETAILED_TEST_OUTPUT" = true ];
                     then
-                        SUCCESS_MESSAGE "OK";
+                        SUCCESS_MESSAGE "OK, $TIME_SPENT";
                     fi;
                 fi;
                 SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
