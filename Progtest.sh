@@ -128,12 +128,24 @@ TEST_LATEST_FOLDER () {
     RUN_TESTS 1 "$LATEST";
 } ;
 
+LIST_ALL_OPTIONS () {
+    COUNT=1;
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    echo -e "$COLOR-h$NO_COLOR, $COLOR--help$NO_COLOR: Show helpful information";
+    COUNT=$((COUNT+1));
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    echo -e "$COLOR-l$NO_COLOR, $COLOR--latest$NO_COLOR: Perform tests only on latest folder";
+} ;
+
 case $1 in
+    -h|--help)
+        LIST_ALL_OPTIONS;
+        ;;
     -l|--latest)
         TEST_LATEST_FOLDER;
         ;;
     -?*)
-        ERROR_MESSAGE "Unknown option: $1";
+        ERROR_MESSAGE "Unknown option: '$1', use '--help' to get list of usable options";
         exit 1;
         ;;
     *)
