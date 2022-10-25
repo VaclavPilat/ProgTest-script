@@ -18,9 +18,16 @@ DETAILED_TEST_OUTPUT=false;
 LATEST_FOLDER_ONLY=false;
 SHOW_ALL_ERRORS=false;
 COMPILATION_SKIPPING_ALLOWED=false;
+IGNORE_SUCCESS_MESSAGES=false;
 
 SUCCESS_MESSAGE () {
-    echo -e "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
+    if [ "$IGNORE_SUCCESS_MESSAGES" = true ];
+    then
+        echo -en "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
+        echo -en "\r\033[K";
+    else
+        echo -e "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
+    fi;
 }
 
 ERROR_MESSAGE () {
@@ -213,6 +220,9 @@ LIST_ALL_OPTIONS () {
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
     echo -e "$COLOR-s$NO_COLOR, $COLOR--skip$NO_COLOR: Skip compilation when possible";
+    COUNT=$((COUNT+1));
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    echo -e "$COLOR-q$NO_COLOR, $COLOR--quiet$NO_COLOR: Shows only error and warning messages";
 } ;
 
 PROCESS_OPTION () {
@@ -232,6 +242,9 @@ PROCESS_OPTION () {
             ;;
         -s|--skip)
             COMPILATION_SKIPPING_ALLOWED=true;
+            ;;
+        -q|--quiet)
+            IGNORE_SUCCESS_MESSAGES=true;
             ;;
         *)
             ERROR_MESSAGE "Unknown option: '$1', use '--help' to get list of usable options";
