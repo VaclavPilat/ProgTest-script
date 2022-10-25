@@ -215,7 +215,7 @@ LIST_ALL_OPTIONS () {
     echo -e "$COLOR-s$NO_COLOR, $COLOR--skip$NO_COLOR: Skip compilation when possible";
 } ;
 
-while :; do
+PROCESS_OPTION () {
     case $1 in
         -h|--help)
             LIST_ALL_OPTIONS;
@@ -233,13 +233,31 @@ while :; do
         -s|--skip)
             COMPILATION_SKIPPING_ALLOWED=true;
             ;;
+        *)
+            ERROR_MESSAGE "Unknown option: '$1', use '--help' to get list of usable options";
+            exit 1;
+            ;;
+    esac
+} ;
+
+while :; do
+    case $1 in
+        -?|--*)
+            PROCESS_OPTION "$1";
+            ;;
+        -?*)
+            OPTIONS="${1:1}";
+            while read -n 1 OPTION;
+            do
+                if [[ $OPTION ]];
+                then
+                    PROCESS_OPTION "-$OPTION";
+                fi;
+            done <<< "$OPTIONS"
+            ;;
         --)
             shift;
             break;
-            ;;
-        -?*)
-            ERROR_MESSAGE "Unknown option: '$1', use '--help' to get list of usable options";
-            exit 1;
             ;;
         *)
             break;
