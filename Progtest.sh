@@ -19,6 +19,7 @@ LATEST_FOLDER_ONLY=false;
 CONTINUE_AFTER_ERROR=false;
 COMPILATION_SKIPPING_ALLOWED=false;
 IGNORE_SUCCESS_MESSAGES=false;
+RUN_WITHOUT_TESTS=false;
 
 SUCCESS_MESSAGE () {
     if [ "$IGNORE_SUCCESS_MESSAGES" = true ];
@@ -169,14 +170,21 @@ RUN_TESTS () {
     cd "$2" || exit 1;
     PREFIX="$(GET_PREFIX_COLOR "$1")$2${NO_COLOR}:";
     if COMPILE "$PREFIX";
-    then 
-        for FOLDER in */;
-        do
-            if [ -d "$FOLDER" ];
-            then
-                TEST_CASE "$PREFIX" "${FOLDER::-1}" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
-            fi;
-        done;
+    then
+        if [ "$RUN_WITHOUT_TESTS" = false ];
+        then
+            for FOLDER in */;
+            do
+                if [ -d "$FOLDER" ];
+                then
+                    TEST_CASE "$PREFIX" "${FOLDER::-1}" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
+                fi;
+            done;
+        else
+            SEPARATOR;
+            ./$COMPILED_FILE_NAME;
+            SEPARATOR;
+        fi;
     fi;
     cd ..;
 } ;
@@ -223,6 +231,9 @@ LIST_ALL_OPTIONS () {
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
     echo -e "$COLOR-q$NO_COLOR, $COLOR--quiet$NO_COLOR: Shows only error and warning messages";
+    COUNT=$((COUNT+1));
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    echo -e "$COLOR-r$NO_COLOR, $COLOR--run$NO_COLOR: Run a program directly (without tests). Should be combined with \"-l\".";
 } ;
 
 PROCESS_OPTION () {
@@ -245,6 +256,9 @@ PROCESS_OPTION () {
             ;;
         -q|--quiet)
             IGNORE_SUCCESS_MESSAGES=true;
+            ;;
+        -r|--run)
+            RUN_WITHOUT_TESTS=true;
             ;;
         *)
             ERROR_MESSAGE "Unknown option: '$1', use '--help' to get list of usable options";
