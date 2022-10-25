@@ -95,7 +95,7 @@ TEST_CASE () {
                 0)
                     ERROR_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
                     ;;
-                $MAXIMUM_TEST_COUNT)
+                "$MAXIMUM_TEST_COUNT")
                     SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
                     ;;
                 *)
@@ -123,7 +123,7 @@ COMPILE () {
         md5sum "$COMPILED_FILE_NAME" >> "$TEMPORARY_FILE_NAME";
     fi;
     diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_NAME" > /dev/null 2> /dev/null;
-    if ( [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] ) || [ "$COMPILATION_SKIPPING_ALLOWED" = false ];
+    if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] || [ "$COMPILATION_SKIPPING_ALLOWED" = false ];
     then
         COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ];
@@ -254,10 +254,6 @@ while :; do
                     PROCESS_OPTION "-$OPTION";
                 fi;
             done <<< "$OPTIONS"
-            ;;
-        --)
-            shift;
-            break;
             ;;
         *)
             break;
