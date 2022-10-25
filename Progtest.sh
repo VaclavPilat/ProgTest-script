@@ -127,9 +127,17 @@ COMPILE () {
         COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ];
         then
-            SUCCESS_MESSAGE "OK";
+            if [[ $COMPILATION_MESSAGES ]];
+            then
+                WARNING_MESSAGE "WARNING";
+            else
+                SUCCESS_MESSAGE "OK";
+            fi;
         else
             ERROR_MESSAGE "FAILED";
+        fi;
+        if [ ! $? -eq 0 ] || [[ $COMPILATION_MESSAGES ]];
+        then
             SEPARATOR;
             echo "$COMPILATION_MESSAGES";
             SEPARATOR;
@@ -138,7 +146,7 @@ COMPILE () {
             then
                 exit;
             else
-                return;
+                return 1;
             fi;
         fi;
         md5sum "$SOURCE_FILE_NAME" > "$HASH_FILE_NAME";
