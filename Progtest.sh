@@ -124,31 +124,44 @@ COMPILE () {
     diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_NAME" > /dev/null 2> /dev/null;
     if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ];
     then
-        g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME";
+        COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ];
         then
             SUCCESS_MESSAGE "OK";
         else
             ERROR_MESSAGE "FAILED";
+            SEPARATOR;
+            echo "$COMPILATION_MESSAGES";
+            SEPARATOR;
+            rm "$HASH_FILE_NAME" 2> /dev/null;
+            if [ "$SHOW_ALL_ERRORS" = false ];
+            then
+                exit;
+            else
+                return;
+            fi;
         fi;
         md5sum "$SOURCE_FILE_NAME" > "$HASH_FILE_NAME";
         md5sum "$COMPILED_FILE_NAME" >> "$HASH_FILE_NAME";
     else
         SUCCESS_MESSAGE "SKIPPED";
     fi;
+    return 0;
 } ;
 
 RUN_TESTS () {
     cd "$2" || exit 1;
     PREFIX="$(GET_PREFIX_COLOR "$1")$2${NO_COLOR}:";
-    COMPILE "$PREFIX";
-    for FOLDER in */;
-    do
-        if [ -d "$FOLDER" ];
-        then
-            TEST_CASE "$PREFIX" "${FOLDER::-1}" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
-        fi;
-    done;
+    if COMPILE "$PREFIX";
+    then 
+        for FOLDER in */;
+        do
+            if [ -d "$FOLDER" ];
+            then
+                TEST_CASE "$PREFIX" "${FOLDER::-1}" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
+            fi;
+        done;
+    fi;
     cd ..;
 } ;
 
