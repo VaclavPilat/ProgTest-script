@@ -16,7 +16,7 @@ TIMEFORMAT='%3lR';
 
 DETAILED_TEST_OUTPUT=false;
 LATEST_FOLDER_ONLY=false;
-SHOW_ALL_ERRORS=false;
+CONTINUE_AFTER_ERROR=false;
 COMPILATION_SKIPPING_ALLOWED=false;
 IGNORE_SUCCESS_MESSAGES=false;
 
@@ -79,7 +79,7 @@ TEST_CASE () {
                     SEPARATOR;
                     echo "$OUTPUT_DIFFERENCE";
                     SEPARATOR;
-                    if [ "$SHOW_ALL_ERRORS" = false ];
+                    if [ "$CONTINUE_AFTER_ERROR" = false ];
                     then
                         exit 0;
                     fi;
@@ -117,7 +117,7 @@ COMPILE () {
     if [ ! -f $SOURCE_FILE_NAME ];
     then
         ERROR_MESSAGE "NOT FOUND";
-        if [ "$SHOW_ALL_ERRORS" = false ];
+        if [ "$CONTINUE_AFTER_ERROR" = false ];
         then
             exit;
         else
@@ -150,7 +150,7 @@ COMPILE () {
             echo "$COMPILATION_MESSAGES";
             SEPARATOR;
             rm "$HASH_FILE_NAME" 2> /dev/null;
-            if [ "$SHOW_ALL_ERRORS" = false ];
+            if [ "$CONTINUE_AFTER_ERROR" = false ];
             then
                 exit;
             else
@@ -216,7 +216,7 @@ LIST_ALL_OPTIONS () {
     echo -e "$COLOR-d$NO_COLOR, $COLOR--detailed$NO_COLOR: Show detailed test output";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-a$NO_COLOR, $COLOR--allerrors$NO_COLOR: Do not stop after first error";
+    echo -e "$COLOR-c$NO_COLOR, $COLOR--continue$NO_COLOR: Continue after an error occurs";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
     echo -e "$COLOR-s$NO_COLOR, $COLOR--skip$NO_COLOR: Skip compilation when possible";
@@ -237,8 +237,8 @@ PROCESS_OPTION () {
         -d|--detailed)
             DETAILED_TEST_OUTPUT=true;
             ;;
-        -a|--allerrors)
-            SHOW_ALL_ERRORS=true;
+        -c|--continue)
+            CONTINUE_AFTER_ERROR=true;
             ;;
         -s|--skip)
             COMPILATION_SKIPPING_ALLOWED=true;
