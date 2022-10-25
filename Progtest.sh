@@ -61,9 +61,9 @@ TEST_CASE () {
                 then
                     if [ "$DETAILED_TEST_OUTPUT" = true ];
                     then
-                        WARNING_MESSAGE "FAILED, $TIME_SPENT";
+                        ERROR_MESSAGE "FAILED, $TIME_SPENT";
                     else
-                        WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT, failed on $INPUT_FILE";
+                        ERROR_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT, failed on $INPUT_FILE";
                     fi;
                     SEPARATOR;
                     cat "$INPUT_FILE";
@@ -76,13 +76,22 @@ TEST_CASE () {
                     then
                         SUCCESS_MESSAGE "OK, $TIME_SPENT";
                     fi;
+                    SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
                 fi;
-                SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
             fi;
         done;
         if [ "$DETAILED_TEST_OUTPUT" = false ];
         then
-            SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+            case $SUCCESSFUL_TEST_COUNT in
+                0)
+                    ERROR_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+                    ;;
+                $MAXIMUM_TEST_COUNT)
+                    SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+                    ;;
+                *)
+                    WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+            esac
         fi;
     fi;
 } ;
