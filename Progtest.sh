@@ -17,6 +17,7 @@ TIMEFORMAT='%3lR';
 DETAILED_TEST_OUTPUT=false;
 LATEST_FOLDER_ONLY=false;
 SHOW_ALL_ERRORS=false;
+COMPILATION_SKIPPING_ALLOWED=false;
 
 SUCCESS_MESSAGE () {
     echo -e "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
@@ -122,7 +123,7 @@ COMPILE () {
         md5sum "$COMPILED_FILE_NAME" >> "$TEMPORARY_FILE_NAME";
     fi;
     diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_NAME" > /dev/null 2> /dev/null;
-    if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ];
+    if ( [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] ) || [ "$COMPILATION_SKIPPING_ALLOWED" = false ];
     then
         COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ];
@@ -209,6 +210,9 @@ LIST_ALL_OPTIONS () {
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
     echo -e "$COLOR-a$NO_COLOR, $COLOR--allerrors$NO_COLOR: Do not stop after first error";
+    COUNT=$((COUNT+1));
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    echo -e "$COLOR-s$NO_COLOR, $COLOR--skip$NO_COLOR: Skip compilation when possible";
 } ;
 
 while :; do
@@ -225,6 +229,9 @@ while :; do
             ;;
         -a|--allerrors)
             SHOW_ALL_ERRORS=true;
+            ;;
+        -s|--skip)
+            COMPILATION_SKIPPING_ALLOWED=true;
             ;;
         --)
             shift;
