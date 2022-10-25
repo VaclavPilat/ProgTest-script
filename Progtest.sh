@@ -16,6 +16,7 @@ TIMEFORMAT='%3lR';
 
 DETAILED_TEST_OUTPUT=false;
 LATEST_FOLDER_ONLY=false;
+SHOW_ALL_ERRORS=false;
 
 SUCCESS_MESSAGE () {
     echo -e "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
@@ -70,7 +71,14 @@ TEST_CASE () {
                     SEPARATOR;
                     echo "$OUTPUT_DIFFERENCE";
                     SEPARATOR;
-                    exit 1;
+                    if [ "$SHOW_ALL_ERRORS" = false ];
+                    then
+                        exit 0;
+                    fi;
+                    if [ "$DETAILED_TEST_OUTPUT" = false ];
+                    then
+                        echo -en "$1 Testing $2 inputs ... ";
+                    fi;
                 else
                     if [ "$DETAILED_TEST_OUTPUT" = true ];
                     then
@@ -100,8 +108,13 @@ COMPILE () {
     echo -en "$1 Compiling source code ... ";
     if [ ! -f $SOURCE_FILE_NAME ];
     then
-        WARNING_MESSAGE "NOT FOUND";
-        exit 1;
+        ERROR_MESSAGE "NOT FOUND";
+        if [ "$SHOW_ALL_ERRORS" = false ];
+        then
+            exit;
+        else
+            return;
+        fi;
     fi;
     if [ -f $COMPILED_FILE_NAME ];
     then
@@ -111,7 +124,7 @@ COMPILE () {
     diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_NAME" > /dev/null 2> /dev/null;
     if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ];
     then
-        g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" || exit 1;
+        g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME";
         if [ $? -eq 0 ];
         then
             SUCCESS_MESSAGE "OK";
@@ -172,6 +185,9 @@ LIST_ALL_OPTIONS () {
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
     echo -e "$COLOR-d$NO_COLOR, $COLOR--detailed$NO_COLOR: Show detailed test output";
+    COUNT=$((COUNT+1));
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    echo -e "$COLOR-a$NO_COLOR, $COLOR--allerrors$NO_COLOR: Do not stop after first error";
 } ;
 
 while :; do
@@ -185,6 +201,9 @@ while :; do
             ;;
         -d|--detailed)
             DETAILED_TEST_OUTPUT=true;
+            ;;
+        -a|--allerrors)
+            SHOW_ALL_ERRORS=true;
             ;;
         --)
             shift;
