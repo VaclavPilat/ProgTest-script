@@ -3,7 +3,7 @@
 SOURCE_FILE_NAME="Main.c";
 COMPILED_FILE_NAME="a.out";
 TEMPORARY_FILE_NAME="/tmp/tmp.txt";
-HASH_FILE_NAME="hash.txt";
+HASH_FILE_NAME=".hash.txt";
 INPUT_FILE_SUFFIX="_in.txt";
 OUTPUT_FILE_SUFFIX="_out.txt";
 
@@ -66,6 +66,29 @@ TEST_CASE () {
                 fi;
                 OUTPUT_FILE=${INPUT_FILE%"$3"}$4;
                 TIME_SPENT=$({ time ./$COMPILED_FILE_NAME < "$INPUT_FILE" > "$TEMPORARY_FILE_NAME"; } 2>&1 );
+                RETURN_VALUE="$?";
+                case "$RETURN_VALUE" in 
+                    0)
+                        ;;
+                    139)
+                        ERROR_MESSAGE "SEGMENTATION FAULT, $TIME_SPENT";
+                        if [ "$CONTINUE_AFTER_ERROR" = false ];
+                        then
+                            exit 0;
+                        else
+                            continue;
+                        fi;
+                        ;;
+                    *)
+                        ERROR_MESSAGE "RETURN VALUE $RETURN_VALUE, $TIME_SPENT";
+                        if [ "$CONTINUE_AFTER_ERROR" = false ];
+                        then
+                            exit 0;
+                        else
+                            continue;
+                        fi;
+                        ;;
+                esac
                 OUTPUT_DIFFERENCE=$(diff "$OUTPUT_FILE" "$TEMPORARY_FILE_NAME");
                 if [ ! $? -eq 0 ];
                 then
@@ -120,7 +143,7 @@ COMPILE () {
         ERROR_MESSAGE "NOT FOUND";
         if [ "$CONTINUE_AFTER_ERROR" = false ];
         then
-            exit;
+            exit 0;
         else
             return;
         fi;
@@ -166,7 +189,7 @@ COMPILE () {
     return 0;
 } ;
 
-RUN_TESTS () {
+RUN_PROGRAM () {
     cd "$2" || exit 1;
     PREFIX="$(GET_PREFIX_COLOR "$1")$2${NO_COLOR}:";
     if COMPILE "$PREFIX";
@@ -195,7 +218,7 @@ TEST_ALL_FOLDERS () {
     do
         if [ -d "$FOLDER" ];
         then
-            RUN_TESTS $COUNT "${FOLDER::-1}";
+            RUN_PROGRAM $COUNT "${FOLDER::-1}";
             COUNT=$((COUNT+1));
         fi;
     done;
@@ -209,7 +232,7 @@ TEST_LATEST_FOLDER () {
         exit 1;
     fi;
     LATEST=$(ls -td */ | head -1);
-    RUN_TESTS 1 "${LATEST::-1}";
+    RUN_PROGRAM 1 "${LATEST::-1}";
 } ;
 
 LIST_ALL_OPTIONS () {
