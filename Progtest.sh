@@ -47,6 +47,52 @@ GET_PREFIX_COLOR () {
     echo -e "\033[0;3$((1 + $1 % 6))m";
 } ;
 
+TEST_RESULTS () {
+    OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_NAME");
+    DIFF_STATUS="$?";
+    case "$1" in 
+        0)
+            if [ "$DIFF_STATUS" -eq 0 ];
+            then
+                if [ "$DETAILED_TEST_OUTPUT" = true ];
+                then
+                    SUCCESS_MESSAGE "OK, $TIME_SPENT";
+                fi;
+                return 0;
+            else
+                WARNING_MESSAGE "FAILED, $TIME_SPENT";
+            fi;
+            ;;
+        134)
+            if [ "$DETAILED_TEST_OUTPUT" = true ];
+            then
+                ERROR_MESSAGE "FAILED ASSERTION, $TIME_SPENT";
+            fi;
+            ;;
+        139)
+            if [ "$DETAILED_TEST_OUTPUT" = true ];
+            then
+                ERROR_MESSAGE "SEGMENTATION FAULT, $TIME_SPENT";
+            fi;
+            ;;
+        *)
+            if [ "$DETAILED_TEST_OUTPUT" = true ];
+            then
+            ERROR_MESSAGE "RETURN VALUE $RETURN_VALUE, $TIME_SPENT";
+            fi;
+            ;;
+    esac
+    if [ "$DETAILED_TEST_OUTPUT" = true ];
+    then
+        SEPARATOR;
+        cat "$2";
+        SEPARATOR;
+        echo "$OUTPUT_DIFFERENCE";
+        SEPARATOR;
+    fi;
+    return 1;
+} ;
+
 SINGLE_TEST () {
     if [ -f "$2" ];
     then
@@ -57,56 +103,12 @@ SINGLE_TEST () {
         OUTPUT_FILE=${2%"$3"}$4;
         TIME_SPENT=$({ time ./$COMPILED_FILE_NAME < "$2" > "$TEMPORARY_FILE_NAME"; } 2>&1 );
         RETURN_VALUE="$?";
-        case "$RETURN_VALUE" in 
-            0)
-                ;;
-            139)
-                ERROR_MESSAGE "SEGMENTATION FAULT, $TIME_SPENT";
-                if [ "$CONTINUE_AFTER_ERROR" = false ];
-                then
-                    exit 0;
-                else
-                    return;
-                fi;
-                ;;
-            *)
-                ERROR_MESSAGE "RETURN VALUE $RETURN_VALUE, $TIME_SPENT";
-                if [ "$CONTINUE_AFTER_ERROR" = false ];
-                then
-                    exit 0;
-                else
-                    return;
-                fi;
-                ;;
-        esac
-        OUTPUT_DIFFERENCE=$(diff "$OUTPUT_FILE" "$TEMPORARY_FILE_NAME");
-        if [ ! $? -eq 0 ];
-        then
-            if [ "$DETAILED_TEST_OUTPUT" = true ];
-            then
-                ERROR_MESSAGE "FAILED, $TIME_SPENT";
-            else
-                ERROR_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT, failed on $2";
-            fi;
-            SEPARATOR;
-            cat "$2";
-            SEPARATOR;
-            echo "$OUTPUT_DIFFERENCE";
-            SEPARATOR;
-            if [ "$CONTINUE_AFTER_ERROR" = false ];
-            then
-                exit 0;
-            fi;
-            if [ "$DETAILED_TEST_OUTPUT" = false ];
-            then
-                echo -en "$1 Testing $2 inputs ... ";
-            fi;
-        else
-            if [ "$DETAILED_TEST_OUTPUT" = true ];
-            then
-                SUCCESS_MESSAGE "OK, $TIME_SPENT";
-            fi;
+        if TEST_RESULTS "$RETURN_VALUE" "$2" "$OUTPUT_FILE";
+        then 
             SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
+            return 0;
+        else
+            return 1;
         fi;
     fi;
 } ;
@@ -122,19 +124,39 @@ TEST_CASE () {
         MAXIMUM_TEST_COUNT=$(echo "$2/"*"$3" | wc -w);
         for INPUT_FILE in "$2/"*"$3";
         do
-            SINGLE_TEST "$1" "$INPUT_FILE" "$3" "$4"
+            if ! SINGLE_TEST "$1" "$INPUT_FILE" "$3" "$4";
+            then
+                if [ "$CONTINUE_AFTER_ERROR" = false ];
+                then
+                    if [ "$DETAILED_TEST_OUTPUT" = true ];
+                    then
+                        exit 1;
+                    else
+                        break;
+                    fi;
+                fi;
+            fi;
         done;
         if [ "$DETAILED_TEST_OUTPUT" = false ];
         then
             case $SUCCESSFUL_TEST_COUNT in
-                0)
-                    ERROR_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
-                    ;;
                 "$MAXIMUM_TEST_COUNT")
                     SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
                     ;;
+                0)
+                    ERROR_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+                    if [ "$CONTINUE_AFTER_ERROR" = false ];
+                    then
+                        exit 1;
+                    fi;
+                    ;;
                 *)
                     WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+                    if [ "$CONTINUE_AFTER_ERROR" = false ];
+                    then
+                        exit 1;
+                    fi;
+                    ;;
             esac
         fi;
     fi;
