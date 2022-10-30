@@ -48,10 +48,18 @@ GET_PREFIX_COLOR () {
 } ;
 
 TEST_RESULTS () {
-    OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_NAME");
-    DIFF_STATUS="$?";
+    if [ "$RUN_WITHOUT_TESTS" = false ];
+    then
+        OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_NAME");
+        DIFF_STATUS="$?";
+    fi;
     case "$1" in 
         0)
+            if [ "$RUN_WITHOUT_TESTS" = true ];
+            then
+                SUCCESS_MESSAGE "NO ERRORS FOUND, $TIME_SPENT";
+                return;
+            fi;
             if [ "$DIFF_STATUS" -eq 0 ];
             then
                 if [ "$DETAILED_TEST_OUTPUT" = true ];
@@ -64,19 +72,19 @@ TEST_RESULTS () {
             fi;
             ;;
         134)
-            if [ "$DETAILED_TEST_OUTPUT" = true ];
+            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ];
             then
                 ERROR_MESSAGE "FAILED ASSERTION, $TIME_SPENT";
             fi;
             ;;
         139)
-            if [ "$DETAILED_TEST_OUTPUT" = true ];
+            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ];
             then
                 ERROR_MESSAGE "SEGMENTATION FAULT, $TIME_SPENT";
             fi;
             ;;
         *)
-            if [ "$DETAILED_TEST_OUTPUT" = true ];
+            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ];
             then
             ERROR_MESSAGE "RETURN VALUE $RETURN_VALUE, $TIME_SPENT";
             fi;
@@ -231,8 +239,11 @@ RUN_PROGRAM () {
             done;
         else
             SEPARATOR;
-            ./$COMPILED_FILE_NAME;
+            TIME_SPENT=$({ time ./$COMPILED_FILE_NAME; } 2>&1 );
+            RETURN_VALUE="$?";
             SEPARATOR;
+            echo -en "$PREFIX Getting result ... ";
+            TEST_RESULTS "$RETURN_VALUE";
         fi;
     fi;
     cd ..;
