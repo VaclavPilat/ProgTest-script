@@ -2,7 +2,8 @@
 
 SOURCE_FILE_NAME="Main.c";
 COMPILED_FILE_NAME="a.out";
-TEMPORARY_FILE_NAME="/tmp/tmp.txt";
+TEMPORARY_FILE_1="/tmp/progtest-tmp1.txt";
+TEMPORARY_FILE_2="/tmp/progtest-tmp2.txt";
 HASH_FILE_NAME=".hash.txt";
 INPUT_FILE_SUFFIX="_in.txt";
 OUTPUT_FILE_SUFFIX="_out.txt";
@@ -50,7 +51,7 @@ GET_PREFIX_COLOR () {
 TEST_RESULTS () {
     if [ "$RUN_WITHOUT_TESTS" = false ];
     then
-        OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_NAME");
+        OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_1");
         DIFF_STATUS="$?";
     fi;
     case "$1" in 
@@ -113,8 +114,9 @@ SINGLE_TEST () {
             echo -en "$1 Testing $2 ... ";
         fi;
         OUTPUT_FILE=${2%"$3"}$4;
-        TIME_SPENT=$({ time ./$COMPILED_FILE_NAME < "$2" > "$TEMPORARY_FILE_NAME"; } 2>&1 );
+        \time -f "%es" --quiet -o "$TEMPORARY_FILE_2" ./$COMPILED_FILE_NAME < "$2" > "$TEMPORARY_FILE_1" 2>&1;
         RETURN_VALUE="$?";
+        TIME_SPENT=$(cat "$TEMPORARY_FILE_2");
         if TEST_RESULTS "$RETURN_VALUE" "$2" "$OUTPUT_FILE";
         then 
             SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
@@ -188,10 +190,10 @@ COMPILE () {
     fi;
     if [ -f $COMPILED_FILE_NAME ];
     then
-        md5sum "$SOURCE_FILE_NAME" > "$TEMPORARY_FILE_NAME";
-        md5sum "$COMPILED_FILE_NAME" >> "$TEMPORARY_FILE_NAME";
+        md5sum "$SOURCE_FILE_NAME" > "$TEMPORARY_FILE_1";
+        md5sum "$COMPILED_FILE_NAME" >> "$TEMPORARY_FILE_1";
     fi;
-    diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_NAME" 2>&1 > /dev/null;
+    diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_1" 2>&1 > /dev/null;
     if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] || [ "$COMPILATION_SKIPPING_ALLOWED" = false ];
     then
         COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
@@ -243,9 +245,9 @@ RUN_PROGRAM () {
             done;
         else
             SEPARATOR;
-            \time -f "%e" --quiet -o "$TEMPORARY_FILE_NAME" ./$COMPILED_FILE_NAME;
+            \time -f "%es" --quiet -o "$TEMPORARY_FILE_1" ./$COMPILED_FILE_NAME;
             RETURN_VALUE="$?";
-            TIME_SPENT="$(cat "$TEMPORARY_FILE_NAME")s";
+            TIME_SPENT=$(cat "$TEMPORARY_FILE_1");
             SEPARATOR;
             echo -en "$PREFIX Getting result ... ";
             TEST_RESULTS "$RETURN_VALUE";
