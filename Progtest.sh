@@ -64,7 +64,9 @@ TEST_RESULTS () {
                 fi;
                 return 0;
             else
-                WARNING_MESSAGE "FAILED, $TIME_SPENT";
+                if [ "$DETAILED_TEST_OUTPUT" = true ]; then
+                    WARNING_MESSAGE "FAILED, $TIME_SPENT";
+                fi;
             fi;
             ;;
         134)
