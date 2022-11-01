@@ -23,8 +23,7 @@ IGNORE_SUCCESS_MESSAGES=false;
 RUN_WITHOUT_TESTS=false;
 
 SUCCESS_MESSAGE () {
-    if [ "$IGNORE_SUCCESS_MESSAGES" = true ];
-    then
+    if [ "$IGNORE_SUCCESS_MESSAGES" = true ]; then
         echo -en "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
         echo -en "\r\033[K";
     else
@@ -49,22 +48,18 @@ GET_PREFIX_COLOR () {
 } ;
 
 TEST_RESULTS () {
-    if [ "$RUN_WITHOUT_TESTS" = false ];
-    then
+    if [ "$RUN_WITHOUT_TESTS" = false ]; then
         OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_1");
         DIFF_STATUS="$?";
     fi;
     case "$1" in 
         0)
-            if [ "$RUN_WITHOUT_TESTS" = true ];
-            then
+            if [ "$RUN_WITHOUT_TESTS" = true ]; then
                 SUCCESS_MESSAGE "NO ERRORS FOUND, $TIME_SPENT";
                 return;
             fi;
-            if [ "$DIFF_STATUS" -eq 0 ];
-            then
-                if [ "$DETAILED_TEST_OUTPUT" = true ];
-                then
+            if [ "$DIFF_STATUS" -eq 0 ]; then
+                if [ "$DETAILED_TEST_OUTPUT" = true ]; then
                     SUCCESS_MESSAGE "OK, $TIME_SPENT";
                 fi;
                 return 0;
@@ -73,30 +68,25 @@ TEST_RESULTS () {
             fi;
             ;;
         134)
-            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ];
-            then
+            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
                 ERROR_MESSAGE "FAILED ASSERTION, $TIME_SPENT";
             fi;
             ;;
         139)
-            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ];
-            then
+            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
                 ERROR_MESSAGE "SEGMENTATION FAULT, $TIME_SPENT";
             fi;
             ;;
         *)
-            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ];
-            then
-            ERROR_MESSAGE "RETURN VALUE $RETURN_VALUE, $TIME_SPENT";
+            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
+                ERROR_MESSAGE "RETURN VALUE $RETURN_VALUE, $TIME_SPENT";
             fi;
             ;;
     esac
-    if [ "$RUN_WITHOUT_TESTS" = true ];
-    then
+    if [ "$RUN_WITHOUT_TESTS" = true ]; then
         return;
     fi;
-    if [ "$DETAILED_TEST_OUTPUT" = true ];
-    then
+    if [ "$DETAILED_TEST_OUTPUT" = true ]; then
         SEPARATOR;
         cat "$2";
         SEPARATOR;
@@ -107,18 +97,15 @@ TEST_RESULTS () {
 } ;
 
 SINGLE_TEST () {
-    if [ -f "$2" ];
-    then
-        if [ "$DETAILED_TEST_OUTPUT" = true ];
-        then
+    if [ -f "$2" ]; then
+        if [ "$DETAILED_TEST_OUTPUT" = true ]; then
             echo -en "$1 Testing $2 ... ";
         fi;
         OUTPUT_FILE=${2%"$3"}$4;
         \time -f "%es" --quiet -o "$TEMPORARY_FILE_2" ./$COMPILED_FILE_NAME < "$2" > "$TEMPORARY_FILE_1" 2>&1;
         RETURN_VALUE="$?";
         TIME_SPENT=$(cat "$TEMPORARY_FILE_2");
-        if TEST_RESULTS "$RETURN_VALUE" "$2" "$OUTPUT_FILE";
-        then 
+        if TEST_RESULTS "$RETURN_VALUE" "$2" "$OUTPUT_FILE"; then 
             SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
             return 0;
         else
@@ -128,22 +115,16 @@ SINGLE_TEST () {
 } ;
 
 TEST_CASE () {
-    if [ -d "$2" ];
-    then
-        if [ "$DETAILED_TEST_OUTPUT" = false ];
-        then
+    if [ -d "$2" ]; then
+        if [ "$DETAILED_TEST_OUTPUT" = false ]; then
             echo -en "$1 Testing $2 inputs ... ";
         fi;
         SUCCESSFUL_TEST_COUNT=0;
         MAXIMUM_TEST_COUNT=$(echo "$2/"*"$3" | wc -w);
-        for INPUT_FILE in "$2/"*"$3";
-        do
-            if ! SINGLE_TEST "$1" "$INPUT_FILE" "$3" "$4";
-            then
-                if [ "$CONTINUE_AFTER_ERROR" = false ];
-                then
-                    if [ "$DETAILED_TEST_OUTPUT" = true ];
-                    then
+        for INPUT_FILE in "$2/"*"$3"; do
+            if ! SINGLE_TEST "$1" "$INPUT_FILE" "$3" "$4"; then
+                if [ "$CONTINUE_AFTER_ERROR" = false ]; then
+                    if [ "$DETAILED_TEST_OUTPUT" = true ]; then
                         exit 1;
                     else
                         break;
@@ -151,23 +132,20 @@ TEST_CASE () {
                 fi;
             fi;
         done;
-        if [ "$DETAILED_TEST_OUTPUT" = false ];
-        then
+        if [ "$DETAILED_TEST_OUTPUT" = false ]; then
             case $SUCCESSFUL_TEST_COUNT in
                 "$MAXIMUM_TEST_COUNT")
                     SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
                     ;;
                 0)
                     ERROR_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
-                    if [ "$CONTINUE_AFTER_ERROR" = false ];
-                    then
+                    if [ "$CONTINUE_AFTER_ERROR" = false ]; then
                         exit 1;
                     fi;
                     ;;
                 *)
                     WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
-                    if [ "$CONTINUE_AFTER_ERROR" = false ];
-                    then
+                    if [ "$CONTINUE_AFTER_ERROR" = false ]; then
                         exit 1;
                     fi;
                     ;;
@@ -178,29 +156,23 @@ TEST_CASE () {
 
 COMPILE () {
     echo -en "$1 Compiling source code ... ";
-    if [ ! -f $SOURCE_FILE_NAME ];
-    then
+    if [ ! -f $SOURCE_FILE_NAME ]; then
         ERROR_MESSAGE "NOT FOUND";
-        if [ "$CONTINUE_AFTER_ERROR" = false ];
-        then
+        if [ "$CONTINUE_AFTER_ERROR" = false ]; then
             exit 0;
         else
             return;
         fi;
     fi;
-    if [ -f $COMPILED_FILE_NAME ];
-    then
+    if [ -f $COMPILED_FILE_NAME ]; then
         md5sum "$SOURCE_FILE_NAME" > "$TEMPORARY_FILE_1";
         md5sum "$COMPILED_FILE_NAME" >> "$TEMPORARY_FILE_1";
     fi;
     diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_1" 2>&1 > /dev/null;
-    if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] || [ "$COMPILATION_SKIPPING_ALLOWED" = false ];
-    then
+    if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] || [ "$COMPILATION_SKIPPING_ALLOWED" = false ]; then
         COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
-        if [ $? -eq 0 ];
-        then
-            if [[ $COMPILATION_MESSAGES ]];
-            then
+        if [ $? -eq 0 ]; then
+            if [[ $COMPILATION_MESSAGES ]]; then
                 WARNING_MESSAGE "WARNING";
             else
                 SUCCESS_MESSAGE "OK";
@@ -208,14 +180,12 @@ COMPILE () {
         else
             ERROR_MESSAGE "FAILED";
         fi;
-        if [ ! $? -eq 0 ] || [[ $COMPILATION_MESSAGES ]];
-        then
+        if [ ! $? -eq 0 ] || [[ $COMPILATION_MESSAGES ]]; then
             SEPARATOR;
             echo "$COMPILATION_MESSAGES";
             SEPARATOR;
             rm "$HASH_FILE_NAME" 2> /dev/null;
-            if [ "$CONTINUE_AFTER_ERROR" = false ];
-            then
+            if [ "$CONTINUE_AFTER_ERROR" = false ]; then
                 exit;
             else
                 return 1;
@@ -232,14 +202,10 @@ COMPILE () {
 RUN_PROGRAM () {
     cd "$2" || exit 1;
     PREFIX="$(GET_PREFIX_COLOR "$1")$2${NO_COLOR}:";
-    if COMPILE "$PREFIX";
-    then
-        if [ "$RUN_WITHOUT_TESTS" = false ];
-        then
-            for FOLDER in */;
-            do
-                if [ -d "$FOLDER" ];
-                then
+    if COMPILE "$PREFIX"; then
+        if [ "$RUN_WITHOUT_TESTS" = false ]; then
+            for FOLDER in */; do
+                if [ -d "$FOLDER" ]; then
                     TEST_CASE "$PREFIX" "${FOLDER::-1}" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
                 fi;
             done;
@@ -258,10 +224,8 @@ RUN_PROGRAM () {
 
 TEST_ALL_FOLDERS () {
     COUNT=1
-    for FOLDER in */;
-    do
-        if [ -d "$FOLDER" ];
-        then
+    for FOLDER in */; do
+        if [ -d "$FOLDER" ]; then
             RUN_PROGRAM $COUNT "${FOLDER::-1}";
             COUNT=$((COUNT+1));
         fi;
@@ -270,8 +234,7 @@ TEST_ALL_FOLDERS () {
 
 TEST_LATEST_FOLDER () {
     FOLDER_COUNT=$(ls -d * 2>/dev/null | wc -l);
-    if [ "$FOLDER_COUNT" -eq 0 ];
-    then
+    if [ "$FOLDER_COUNT" -eq 0 ]; then
         ERROR_MESSAGE "No folder found!";
         exit 1;
     fi;
@@ -341,10 +304,8 @@ while :; do
             ;;
         -?*)
             OPTIONS="${1:1}";
-            while read -n 1 OPTION;
-            do
-                if [[ $OPTION ]];
-                then
+            while read -n 1 OPTION; do
+                if [[ $OPTION ]]; then
                     PROCESS_OPTION "-$OPTION";
                 fi;
             done <<< "$OPTIONS"
@@ -355,8 +316,7 @@ while :; do
     shift;
 done
 
-if $LATEST_FOLDER_ONLY;
-then
+if $LATEST_FOLDER_ONLY; then
     TEST_LATEST_FOLDER;
 else
     TEST_ALL_FOLDERS;
