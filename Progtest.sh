@@ -21,6 +21,7 @@ CONTINUE_AFTER_ERROR=false;
 COMPILATION_SKIPPING_ALLOWED=false;
 IGNORE_SUCCESS_MESSAGES=false;
 RUN_WITHOUT_TESTS=false;
+SELECTED_FOLDER_NAME=;
 
 SUCCESS_MESSAGE () {
     if [ "$IGNORE_SUCCESS_MESSAGES" = true ]; then
@@ -207,7 +208,11 @@ COMPILE () {
 } ;
 
 RUN_PROGRAM () {
-    cd "$2" || exit 1;
+    if [ ! -d "$2" ]; then
+        ERROR_MESSAGE "Cannot find folder '$2'.";
+        exit 1;
+    fi;
+    cd "$2" 2>/dev/null || exit 1;
     PREFIX="$(GET_PREFIX_COLOR "$1")$2${NO_COLOR}:";
     if COMPILE "$PREFIX"; then
         if [ "$RUN_WITHOUT_TESTS" = false ]; then
@@ -318,13 +323,18 @@ while :; do
             done <<< "$OPTIONS"
             ;;
         *)
+            SELECTED_FOLDER_NAME="$1";
             break;
     esac
     shift;
 done
 
-if $LATEST_FOLDER_ONLY; then
-    TEST_LATEST_FOLDER;
+if [ ! -z $SELECTED_FOLDER_NAME ]; then
+    RUN_PROGRAM 1 "$1";
 else
-    TEST_ALL_FOLDERS;
+    if $LATEST_FOLDER_ONLY; then
+        TEST_LATEST_FOLDER;
+    else
+        TEST_ALL_FOLDERS;
+    fi;
 fi;
