@@ -49,7 +49,7 @@ GET_PREFIX_COLOR () {
 
 TEST_RESULTS () {
     if [ "$RUN_WITHOUT_TESTS" = false ]; then
-        OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_1");
+        OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_1" 2> /dev/null);
         DIFF_STATUS="$?";
     fi;
     case "$1" in 
