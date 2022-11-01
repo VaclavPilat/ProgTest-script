@@ -69,6 +69,11 @@ TEST_RESULTS () {
                 fi;
             fi;
             ;;
+        130)
+            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
+                WARNING_MESSAGE "TERMINATED, $TIME_SPENT";
+            fi;
+            ;;
         134)
             if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
                 ERROR_MESSAGE "FAILED ASSERTION, $TIME_SPENT";
@@ -170,7 +175,7 @@ COMPILE () {
         md5sum "$SOURCE_FILE_NAME" > "$TEMPORARY_FILE_1";
         md5sum "$COMPILED_FILE_NAME" >> "$TEMPORARY_FILE_1";
     fi;
-    diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_1" 2>&1 > /dev/null;
+    diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_1" > /dev/null 2>&1;
     if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] || [ "$COMPILATION_SKIPPING_ALLOWED" = false ]; then
         COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ]; then
