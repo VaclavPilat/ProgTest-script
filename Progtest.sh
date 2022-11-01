@@ -90,6 +90,10 @@ TEST_RESULTS () {
             fi;
             ;;
     esac
+    if [ "$RUN_WITHOUT_TESTS" = true ];
+    then
+        return;
+    fi;
     if [ "$DETAILED_TEST_OUTPUT" = true ];
     then
         SEPARATOR;
@@ -187,7 +191,7 @@ COMPILE () {
         md5sum "$SOURCE_FILE_NAME" > "$TEMPORARY_FILE_NAME";
         md5sum "$COMPILED_FILE_NAME" >> "$TEMPORARY_FILE_NAME";
     fi;
-    diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_NAME" > /dev/null 2> /dev/null;
+    diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_NAME" 2>&1 > /dev/null;
     if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] || [ "$COMPILATION_SKIPPING_ALLOWED" = false ];
     then
         COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
@@ -239,8 +243,9 @@ RUN_PROGRAM () {
             done;
         else
             SEPARATOR;
-            TIME_SPENT=$({ time ./$COMPILED_FILE_NAME; } 2>&1 );
+            \time -f "%e" --quiet -o "$TEMPORARY_FILE_NAME" ./$COMPILED_FILE_NAME;
             RETURN_VALUE="$?";
+            TIME_SPENT="$(cat "$TEMPORARY_FILE_NAME")s";
             SEPARATOR;
             echo -en "$PREFIX Getting result ... ";
             TEST_RESULTS "$RETURN_VALUE";
