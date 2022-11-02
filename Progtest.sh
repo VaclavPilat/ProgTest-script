@@ -8,6 +8,7 @@ HASH_FILE_NAME=".hash.txt";
 INPUT_FILE_SUFFIX="_in.txt";
 OUTPUT_FILE_SUFFIX="_out.txt";
 
+WHITE_BOLD_COLOR="\033[1;37m";
 RED_BOLD_COLOR="\033[1;31m";
 GREEN_BOLD_COLOR="\033[1;32m";
 YELLOW_BOLD_COLOR="\033[1;33m";
@@ -25,20 +26,24 @@ SELECTED_FOLDER_NAME=;
 
 SUCCESS_MESSAGE () {
     if [ "$IGNORE_SUCCESS_MESSAGES" = true ]; then
-        echo -en "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
+        echo -en "$GREEN_BOLD_COLOR$1$NO_COLOR";
         echo -en "\r\033[K";
     else
-        echo -e "${GREEN_BOLD_COLOR}${1}${NO_COLOR}";
+        echo -e "$GREEN_BOLD_COLOR$1$NO_COLOR";
     fi;
 }
 
+HEADING () {
+    echo -e "$WHITE_BOLD_COLOR$1$NO_COLOR";
+} ;
+
 ERROR_MESSAGE () {
-    echo -e "${RED_BOLD_COLOR}${1}${NO_COLOR}";
-}
+    echo -e "$RED_BOLD_COLOR$1$NO_COLOR";
+} ;
 
 WARNING_MESSAGE () {
-    echo -e "${YELLOW_BOLD_COLOR}${1}${NO_COLOR}";
-}
+    echo -e "$YELLOW_BOLD_COLOR$1$NO_COLOR";
+} ;
 
 SEPARATOR () {
     printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -;
@@ -254,7 +259,8 @@ TEST_LATEST_FOLDER () {
     RUN_PROGRAM 1 "${LATEST::-1}";
 } ;
 
-LIST_ALL_OPTIONS () {
+SHOW_HELP () {
+    HEADING "Options:";
     COUNT=1;
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
     echo -e "$COLOR-h$NO_COLOR, $COLOR--help$NO_COLOR: Show help and exit";
@@ -275,13 +281,35 @@ LIST_ALL_OPTIONS () {
     echo -e "$COLOR-q$NO_COLOR, $COLOR--quiet$NO_COLOR: Shows only error and warning messages";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-r$NO_COLOR, $COLOR--run$NO_COLOR: Run a program directly (without tests). Should be combined with \"-l\".";
+    echo -e "$COLOR-r$NO_COLOR, $COLOR--run$NO_COLOR: Run a program directly (without tests).";
+    echo "";
+    HEADING "Arguments:";
+    echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
+    echo "";
+    HEADING "Usage:";
+    echo "This program runs best with the following file structure (names of folders do not matter, however source code should be saved in Main.c and test files should have the *_in.txt and *_out.txt suffix).";
+    COUNT=$((COUNT+1));
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    printf "\n${COLOR}hw00/${NO_COLOR}\n"
+    printf "    %s\n" "sample/";
+    printf "        %s\n" "0000_in.txt" "0000_out.txt" "...";
+    printf "    %s\n" "custom/";
+    printf "        %s\n" "...";
+    printf "    %s\n" "Main.c";
+    COUNT=$((COUNT+1));
+    COLOR=$(GET_PREFIX_COLOR "$COUNT");
+    printf "${COLOR}hw01a/${NO_COLOR}\n"
+    printf "    %s\n" "sample/";
+    printf "        %s\n" "...";
+    printf "    %s\n" "Main.c";
+    echo "";
+    echo "With no options or arguments provided, the script attempts to compile, run and test all programs inside the working directory.";
 } ;
 
 PROCESS_OPTION () {
     case $1 in
         -h|--help)
-            LIST_ALL_OPTIONS;
+            SHOW_HELP;
             exit;
             ;;
         -l|--latest)
