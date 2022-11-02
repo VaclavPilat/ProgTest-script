@@ -66,12 +66,12 @@ TEST_RESULTS () {
             fi;
             if [ "$DIFF_STATUS" -eq 0 ]; then
                 if [ "$DETAILED_TEST_OUTPUT" = true ]; then
-                    SUCCESS_MESSAGE "PASSED TEST, $TIME_SPENT";
+                    SUCCESS_MESSAGE "OK, $TIME_SPENT";
                 fi;
                 return 0;
             else
                 if [ "$DETAILED_TEST_OUTPUT" = true ]; then
-                    WARNING_MESSAGE "FAILED TEST, $TIME_SPENT";
+                    WARNING_MESSAGE "FAILED, $TIME_SPENT";
                 fi;
             fi;
             ;;
