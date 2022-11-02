@@ -66,23 +66,28 @@ TEST_RESULTS () {
             fi;
             if [ "$DIFF_STATUS" -eq 0 ]; then
                 if [ "$DETAILED_TEST_OUTPUT" = true ]; then
-                    SUCCESS_MESSAGE "OK, $TIME_SPENT";
+                    SUCCESS_MESSAGE "PASSED TEST, $TIME_SPENT";
                 fi;
                 return 0;
             else
                 if [ "$DETAILED_TEST_OUTPUT" = true ]; then
-                    WARNING_MESSAGE "FAILED, $TIME_SPENT";
+                    WARNING_MESSAGE "FAILED TEST, $TIME_SPENT";
                 fi;
             fi;
             ;;
         130)
             if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
-                WARNING_MESSAGE "TERMINATED, $TIME_SPENT";
+                WARNING_MESSAGE "TERMINATED BY CTRL+C, $TIME_SPENT";
             fi;
             ;;
         134)
             if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
-                ERROR_MESSAGE "FAILED ASSERTION, $TIME_SPENT";
+                ERROR_MESSAGE "ABORTED (FAILED ASSERT?), $TIME_SPENT";
+            fi;
+            ;;
+        136)
+            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
+                ERROR_MESSAGE "FLOATING POINT EXCEPTION, $TIME_SPENT";
             fi;
             ;;
         139)
@@ -92,7 +97,7 @@ TEST_RESULTS () {
             ;;
         *)
             if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
-                ERROR_MESSAGE "RETURN VALUE $RETURN_VALUE, $TIME_SPENT";
+                ERROR_MESSAGE "PROGRAM RETURNED $RETURN_VALUE, $TIME_SPENT";
             fi;
             ;;
     esac
