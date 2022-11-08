@@ -121,7 +121,7 @@ single_test () {
             echo -en "$1 Testing $2 ... ";
         fi;
         output_file=${2%"$3"}$4;
-        \time -f "%es" --quiet -o "$temporary_file_2" ./$compiled_file_name < "$2" > "$temporary_file_1" 2>&1;
+        /usr/bin/time -f "%es" --quiet -o "$temporary_file_2" ./$compiled_file_name < "$2" > "$temporary_file_1" 2>&1;
         return_value="$?";
         time_spent=$(cat "$temporary_file_2");
         if test_results "$return_value" "$2" "$output_file"; then 
@@ -235,7 +235,7 @@ run_program () {
             done;
         else
             separating_line;
-            \time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
+            /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
             return_value="$?";
             time_spent=$(cat "$temporary_file_1");
             separating_line;
@@ -297,7 +297,7 @@ show_help () {
     echo "This program runs best with the following file structure (names of folders do not matter, however source code should be saved in Main.c and test files should have the *_in.txt and *_out.txt suffix).";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    printf "\n${color_text}hw00/${no_color}\n"
+    printf "\n%shw00/%s\n" "$color_text" "$no_color"
     printf "    %s\n" "sample/";
     printf "        %s\n" "0000_in.txt" "0000_out.txt" "...";
     printf "    %s\n" "custom/";
@@ -305,7 +305,7 @@ show_help () {
     printf "    %s\n" "Main.c";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    printf "${color_text}hw01a/${no_color}\n"
+    printf "\n%shw01a/%s\n" "$color_text" "$no_color"
     printf "    %s\n" "sample/";
     printf "        %s\n" "...";
     printf "    %s\n" "Main.c";
@@ -351,7 +351,7 @@ while :; do
             ;;
         -?*)
             program_options="${1:1}";
-            while read -n 1 option_name; do
+            while read -rn 1 option_name; do
                 if [[ $option_name ]]; then
                     process_option "-$option_name";
                 fi;
@@ -364,7 +364,7 @@ while :; do
     shift;
 done
 
-if [ ! -z $selected_folder_name ]; then
+if [ -n "$selected_folder_name" ]; then
     run_program 1 "$1";
 else
     if $latest_folder_only; then
