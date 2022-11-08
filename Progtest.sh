@@ -56,49 +56,49 @@ get_prefix_color () {
 
 test_results () {
     if [ "$run_without_tests" = false ]; then
-        OUTPUT_DIFFERENCE=$(diff "$3" "$temporary_file_1" 2> /dev/null);
-        DIFF_STATUS="$?";
+        output_difference=$(diff "$3" "$temporary_file_1" 2> /dev/null);
+        difference_status="$?";
     fi;
     case "$1" in 
         0)
             if [ "$run_without_tests" = true ]; then
-                success_message "NO ERRORS FOUND, $TIME_SPENT";
+                success_message "NO ERRORS FOUND, $time_spent";
                 return;
             fi;
-            if [ "$DIFF_STATUS" -eq 0 ]; then
+            if [ "$difference_status" -eq 0 ]; then
                 if [ "$detailed_test_output" = true ]; then
-                    success_message "OK, $TIME_SPENT";
+                    success_message "OK, $time_spent";
                 fi;
                 return 0;
             else
                 if [ "$detailed_test_output" = true ]; then
-                    warning_message "FAILED, $TIME_SPENT";
+                    warning_message "FAILED, $time_spent";
                 fi;
             fi;
             ;;
         130)
             if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
-                warning_message "TERMINATED BY CTRL+C, $TIME_SPENT";
+                warning_message "TERMINATED BY CTRL+C, $time_spent";
             fi;
             ;;
         134)
             if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
-                error_message "ABORTED (FAILED ASSERT?), $TIME_SPENT";
+                error_message "ABORTED (FAILED ASSERT?), $time_spent";
             fi;
             ;;
         136)
             if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
-                error_message "FLOATING POINT EXCEPTION, $TIME_SPENT";
+                error_message "FLOATING POINT EXCEPTION, $time_spent";
             fi;
             ;;
         139)
             if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
-                error_message "SEGMENTATION FAULT, $TIME_SPENT";
+                error_message "SEGMENTATION FAULT, $time_spent";
             fi;
             ;;
         *)
             if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
-                error_message "PROGRAM RETURNED $RETURN_VALUE, $TIME_SPENT";
+                error_message "PROGRAM RETURNED $return_value, $time_spent";
             fi;
             ;;
     esac
@@ -109,7 +109,7 @@ test_results () {
         separating_line;
         cat "$2";
         separating_line;
-        echo "$OUTPUT_DIFFERENCE";
+        echo "$output_difference";
         separating_line;
     fi;
     return 1;
@@ -120,12 +120,11 @@ single_test () {
         if [ "$detailed_test_output" = true ]; then
             echo -en "$1 Testing $2 ... ";
         fi;
-        OUTPUT_FILE=${2%"$3"}$4;
+        output_file=${2%"$3"}$4;
         \time -f "%es" --quiet -o "$temporary_file_2" ./$compiled_file_name < "$2" > "$temporary_file_1" 2>&1;
-        RETURN_VALUE="$?";
-        TIME_SPENT=$(cat "$temporary_file_2");
-        if test_results "$RETURN_VALUE" "$2" "$OUTPUT_FILE"; then 
-            SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
+        return_value="$?";
+        time_spent=$(cat "$temporary_file_2");
+        if test_results "$return_value" "$2" "$output_file"; then 
             return 0;
         else
             return 1;
@@ -138,10 +137,10 @@ test_case () {
         if [ "$detailed_test_output" = false ]; then
             echo -en "$1 Testing $2 inputs ... ";
         fi;
-        SUCCESSFUL_TEST_COUNT=0;
-        MAXIMUM_TEST_COUNT=$(echo "$2/"*"$3" | wc -w);
-        for INPUT_FILE in "$2/"*"$3"; do
-            if ! single_test "$1" "$INPUT_FILE" "$3" "$4"; then
+        successful_test_count=0;
+        maximum_test_count=$(echo "$2/"*"$3" | wc -w);
+        for input_file in "$2/"*"$3"; do
+            if ! single_test "$1" "$input_file" "$3" "$4"; then
                 if [ "$continue_after_error" = false ]; then
                     if [ "$detailed_test_output" = true ]; then
                         exit 1;
@@ -149,21 +148,23 @@ test_case () {
                         break;
                     fi;
                 fi;
+            else
+                successful_test_count=$((successful_test_count+1));
             fi;
         done;
         if [ "$detailed_test_output" = false ]; then
-            case $SUCCESSFUL_TEST_COUNT in
-                "$MAXIMUM_TEST_COUNT")
-                    success_message "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+            case $successful_test_count in
+                "$maximum_test_count")
+                    success_message "$successful_test_count/$maximum_test_count";
                     ;;
                 0)
-                    error_message "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+                    error_message "$successful_test_count/$maximum_test_count";
                     if [ "$continue_after_error" = false ]; then
                         exit 1;
                     fi;
                     ;;
                 *)
-                    warning_message "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
+                    warning_message "$successful_test_count/$maximum_test_count";
                     if [ "$continue_after_error" = false ]; then
                         exit 1;
                     fi;
@@ -189,9 +190,9 @@ compile_source_code () {
     fi;
     diff "$hash_file_name" "$temporary_file_1" > /dev/null 2>&1;
     if [ ! $? -eq 0 ] || [ ! -f "$compiled_file_name" ] || [ "$compilation_skipping_allowed" = false ]; then
-        COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always 2>&1);
+        compilation_messages=$(g++ -Wall -pedantic "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ]; then
-            if [[ $COMPILATION_MESSAGES ]]; then
+            if [[ $compilation_messages ]]; then
                 warning_message "WARNING";
             else
                 success_message "OK";
@@ -199,9 +200,9 @@ compile_source_code () {
         else
             error_message "FAILED";
         fi;
-        if [ ! $? -eq 0 ] || [[ $COMPILATION_MESSAGES ]]; then
+        if [ ! $? -eq 0 ] || [[ $compilation_messages ]]; then
             separating_line;
-            echo "$COMPILATION_MESSAGES";
+            echo "$compilation_messages";
             separating_line;
             rm "$hash_file_name" 2> /dev/null;
             if [ "$continue_after_error" = false ]; then
@@ -224,87 +225,87 @@ run_program () {
         exit 1;
     fi;
     cd "$2" 2>/dev/null || exit 1;
-    PREFIX="$(get_prefix_color "$1")$2${no_color}:";
-    if compile_source_code "$PREFIX"; then
+    prefix_text="$(get_prefix_color "$1")$2${no_color}:";
+    if compile_source_code "$prefix_text"; then
         if [ "$run_without_tests" = false ]; then
-            for FOLDER in */; do
-                if [ -d "$FOLDER" ]; then
-                    test_case "$PREFIX" "${FOLDER::-1}" "$input_file_suffix" "$output_file_suffix";
+            for folder_name in */; do
+                if [ -d "$folder_name" ]; then
+                    test_case "$prefix_text" "${folder_name::-1}" "$input_file_suffix" "$output_file_suffix";
                 fi;
             done;
         else
             separating_line;
             \time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
-            RETURN_VALUE="$?";
-            TIME_SPENT=$(cat "$temporary_file_1");
+            return_value="$?";
+            time_spent=$(cat "$temporary_file_1");
             separating_line;
-            echo -en "$PREFIX Getting result ... ";
-            test_results "$RETURN_VALUE";
+            echo -en "$prefix_text Getting result ... ";
+            test_results "$return_value";
         fi;
     fi;
     cd ..;
 } ;
 
 test_all_folders () {
-    COUNT=1
-    for FOLDER in */; do
-        if [ -d "$FOLDER" ]; then
-            run_program $COUNT "${FOLDER::-1}";
-            COUNT=$((COUNT+1));
+    color_count=1
+    for folder_name in */; do
+        if [ -d "$folder_name" ]; then
+            run_program $color_count "${folder_name::-1}";
+            color_count=$((color_count+1));
         fi;
     done;
 } ;
 
 test_latest_folder () {
-    FOLDER_COUNT=$(ls -d * 2>/dev/null | wc -l);
-    if [ "$FOLDER_COUNT" -eq 0 ]; then
+    folder_count=$(ls -d * 2>/dev/null | wc -l);
+    if [ "$folder_count" -eq 0 ]; then
         error_message "No folder found!";
         exit 1;
     fi;
-    LATEST=$(ls -td */ | head -1);
-    run_program 1 "${LATEST::-1}";
+    latest_folder=$(ls -td */ | head -1);
+    run_program 1 "${latest_folder::-1}";
 } ;
 
 show_help () {
     show_heading "Options:";
-    COUNT=1;
-    COLOR=$(get_prefix_color "$COUNT");
-    echo -e "$COLOR-h$no_color, $COLOR--help$no_color: Show help and exit";
-    COUNT=$((COUNT+1));
-    COLOR=$(get_prefix_color "$COUNT");
-    echo -e "$COLOR-l$no_color, $COLOR--latest$no_color: Perform tests only on latest folder";
-    COUNT=$((COUNT+1));
-    COLOR=$(get_prefix_color "$COUNT");
-    echo -e "$COLOR-d$no_color, $COLOR--detailed$no_color: Show detailed test output";
-    COUNT=$((COUNT+1));
-    COLOR=$(get_prefix_color "$COUNT");
-    echo -e "$COLOR-c$no_color, $COLOR--continue$no_color: Continue after an error occurs";
-    COUNT=$((COUNT+1));
-    COLOR=$(get_prefix_color "$COUNT");
-    echo -e "$COLOR-s$no_color, $COLOR--skip$no_color: Skip compilation when possible";
-    COUNT=$((COUNT+1));
-    COLOR=$(get_prefix_color "$COUNT");
-    echo -e "$COLOR-q$no_color, $COLOR--quiet$no_color: Shows only error and warning messages";
-    COUNT=$((COUNT+1));
-    COLOR=$(get_prefix_color "$COUNT");
-    echo -e "$COLOR-r$no_color, $COLOR--run$no_color: Run a program directly (without tests).";
+    color_count=1;
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-h$no_color, $color_text--help$no_color: Show help and exit";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-l$no_color, $color_text--latest$no_color: Perform tests only on latest folder";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-d$no_color, $color_text--detailed$no_color: Show detailed test output";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-c$no_color, $color_text--continue$no_color: Continue after an error occurs";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-s$no_color, $color_text--skip$no_color: Skip compilation when possible";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-q$no_color, $color_text--quiet$no_color: Shows only error and warning messages";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-r$no_color, $color_text--run$no_color: Run a program directly (without tests).";
     echo "";
     show_heading "Arguments:";
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
     echo "";
     show_heading "Usage:";
     echo "This program runs best with the following file structure (names of folders do not matter, however source code should be saved in Main.c and test files should have the *_in.txt and *_out.txt suffix).";
-    COUNT=$((COUNT+1));
-    COLOR=$(get_prefix_color "$COUNT");
-    printf "\n${COLOR}hw00/${no_color}\n"
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    printf "\n${color_text}hw00/${no_color}\n"
     printf "    %s\n" "sample/";
     printf "        %s\n" "0000_in.txt" "0000_out.txt" "...";
     printf "    %s\n" "custom/";
     printf "        %s\n" "...";
     printf "    %s\n" "Main.c";
-    COUNT=$((COUNT+1));
-    COLOR=$(get_prefix_color "$COUNT");
-    printf "${COLOR}hw01a/${no_color}\n"
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    printf "${color_text}hw01a/${no_color}\n"
     printf "    %s\n" "sample/";
     printf "        %s\n" "...";
     printf "    %s\n" "Main.c";
@@ -349,12 +350,12 @@ while :; do
             process_option "$1";
             ;;
         -?*)
-            OPTIONS="${1:1}";
-            while read -n 1 OPTION; do
-                if [[ $OPTION ]]; then
-                    process_option "-$OPTION";
+            program_options="${1:1}";
+            while read -n 1 option_name; do
+                if [[ $option_name ]]; then
+                    process_option "-$option_name";
                 fi;
-            done <<< "$OPTIONS"
+            done <<< "$program_options"
             ;;
         *)
             selected_folder_name="$1";
