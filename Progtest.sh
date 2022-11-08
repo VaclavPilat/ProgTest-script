@@ -1,48 +1,49 @@
 #!/bin/bash
 
-SOURCE_FILE_NAME="Main.c";
-COMPILED_FILE_NAME="a.out";
-TEMPORARY_FILE_1="/tmp/progtest-tmp1.txt";
-TEMPORARY_FILE_2="/tmp/progtest-tmp2.txt";
-HASH_FILE_NAME=".hash.txt";
-INPUT_FILE_SUFFIX="_in.txt";
-OUTPUT_FILE_SUFFIX="_out.txt";
+# File names
+source_file_name="Main.c";
+compiled_file_name="a.out";
+temporary_file_1="/tmp/progtest-tmp1.txt";
+temporary_file_2="/tmp/progtest-tmp2.txt";
+hash_file_name=".hash.txt";
+input_file_suffix="_in.txt";
+output_file_suffix="_out.txt";
 
-WHITE_BOLD_COLOR="\033[1;37m";
-RED_BOLD_COLOR="\033[1;31m";
-GREEN_BOLD_COLOR="\033[1;32m";
-YELLOW_BOLD_COLOR="\033[1;33m";
-NO_COLOR="\033[0;0m";
+# Colors
+white_bold_color="\033[1;37m";
+red_bold_color="\033[1;31m";
+green_bold_color="\033[1;32m";
+yellow_bold_color="\033[1;33m";
+no_color="\033[0;0m";
 
-TIMEFORMAT='%3lR';
-
-DETAILED_TEST_OUTPUT=false;
-LATEST_FOLDER_ONLY=false;
-CONTINUE_AFTER_ERROR=false;
-COMPILATION_SKIPPING_ALLOWED=false;
-IGNORE_SUCCESS_MESSAGES=false;
-RUN_WITHOUT_TESTS=false;
-SELECTED_FOLDER_NAME=;
+# Options
+detailed_test_output=false;
+latest_folder_only=false;
+continue_after_error=false;
+compilation_skipping_allowed=false;
+ignore_success_messages=false;
+run_without_tests=false;
+selected_folder_name=;
 
 SUCCESS_MESSAGE () {
-    if [ "$IGNORE_SUCCESS_MESSAGES" = true ]; then
-        echo -en "$GREEN_BOLD_COLOR$1$NO_COLOR";
+    if [ "$ignore_success_messages" = true ]; then
+        echo -en "$green_bold_color$1$no_color";
         echo -en "\r\033[K";
     else
-        echo -e "$GREEN_BOLD_COLOR$1$NO_COLOR";
+        echo -e "$green_bold_color$1$no_color";
     fi;
 }
 
 HEADING () {
-    echo -e "$WHITE_BOLD_COLOR$1$NO_COLOR";
+    echo -e "$white_bold_color$1$no_color";
 } ;
 
 ERROR_MESSAGE () {
-    echo -e "$RED_BOLD_COLOR$1$NO_COLOR";
+    echo -e "$red_bold_color$1$no_color";
 } ;
 
 WARNING_MESSAGE () {
-    echo -e "$YELLOW_BOLD_COLOR$1$NO_COLOR";
+    echo -e "$yellow_bold_color$1$no_color";
 } ;
 
 SEPARATOR () {
@@ -54,57 +55,57 @@ GET_PREFIX_COLOR () {
 } ;
 
 TEST_RESULTS () {
-    if [ "$RUN_WITHOUT_TESTS" = false ]; then
-        OUTPUT_DIFFERENCE=$(diff -y "$3" "$TEMPORARY_FILE_1" 2> /dev/null);
+    if [ "$run_without_tests" = false ]; then
+        OUTPUT_DIFFERENCE=$(diff "$3" "$temporary_file_1" 2> /dev/null);
         DIFF_STATUS="$?";
     fi;
     case "$1" in 
         0)
-            if [ "$RUN_WITHOUT_TESTS" = true ]; then
+            if [ "$run_without_tests" = true ]; then
                 SUCCESS_MESSAGE "NO ERRORS FOUND, $TIME_SPENT";
                 return;
             fi;
             if [ "$DIFF_STATUS" -eq 0 ]; then
-                if [ "$DETAILED_TEST_OUTPUT" = true ]; then
+                if [ "$detailed_test_output" = true ]; then
                     SUCCESS_MESSAGE "OK, $TIME_SPENT";
                 fi;
                 return 0;
             else
-                if [ "$DETAILED_TEST_OUTPUT" = true ]; then
+                if [ "$detailed_test_output" = true ]; then
                     WARNING_MESSAGE "FAILED, $TIME_SPENT";
                 fi;
             fi;
             ;;
         130)
-            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
                 WARNING_MESSAGE "TERMINATED BY CTRL+C, $TIME_SPENT";
             fi;
             ;;
         134)
-            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
                 ERROR_MESSAGE "ABORTED (FAILED ASSERT?), $TIME_SPENT";
             fi;
             ;;
         136)
-            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
                 ERROR_MESSAGE "FLOATING POINT EXCEPTION, $TIME_SPENT";
             fi;
             ;;
         139)
-            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
                 ERROR_MESSAGE "SEGMENTATION FAULT, $TIME_SPENT";
             fi;
             ;;
         *)
-            if [ "$DETAILED_TEST_OUTPUT" = true ] || [ "$RUN_WITHOUT_TESTS" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
                 ERROR_MESSAGE "PROGRAM RETURNED $RETURN_VALUE, $TIME_SPENT";
             fi;
             ;;
     esac
-    if [ "$RUN_WITHOUT_TESTS" = true ]; then
+    if [ "$run_without_tests" = true ]; then
         return;
     fi;
-    if [ "$DETAILED_TEST_OUTPUT" = true ]; then
+    if [ "$detailed_test_output" = true ]; then
         SEPARATOR;
         cat "$2";
         SEPARATOR;
@@ -116,13 +117,13 @@ TEST_RESULTS () {
 
 SINGLE_TEST () {
     if [ -f "$2" ]; then
-        if [ "$DETAILED_TEST_OUTPUT" = true ]; then
+        if [ "$detailed_test_output" = true ]; then
             echo -en "$1 Testing $2 ... ";
         fi;
         OUTPUT_FILE=${2%"$3"}$4;
-        \time -f "%es" --quiet -o "$TEMPORARY_FILE_2" ./$COMPILED_FILE_NAME < "$2" > "$TEMPORARY_FILE_1" 2>&1;
+        \time -f "%es" --quiet -o "$temporary_file_2" ./$compiled_file_name < "$2" > "$temporary_file_1" 2>&1;
         RETURN_VALUE="$?";
-        TIME_SPENT=$(cat "$TEMPORARY_FILE_2");
+        TIME_SPENT=$(cat "$temporary_file_2");
         if TEST_RESULTS "$RETURN_VALUE" "$2" "$OUTPUT_FILE"; then 
             SUCCESSFUL_TEST_COUNT=$((SUCCESSFUL_TEST_COUNT+1));
             return 0;
@@ -134,15 +135,15 @@ SINGLE_TEST () {
 
 TEST_CASE () {
     if [ -d "$2" ]; then
-        if [ "$DETAILED_TEST_OUTPUT" = false ]; then
+        if [ "$detailed_test_output" = false ]; then
             echo -en "$1 Testing $2 inputs ... ";
         fi;
         SUCCESSFUL_TEST_COUNT=0;
         MAXIMUM_TEST_COUNT=$(echo "$2/"*"$3" | wc -w);
         for INPUT_FILE in "$2/"*"$3"; do
             if ! SINGLE_TEST "$1" "$INPUT_FILE" "$3" "$4"; then
-                if [ "$CONTINUE_AFTER_ERROR" = false ]; then
-                    if [ "$DETAILED_TEST_OUTPUT" = true ]; then
+                if [ "$continue_after_error" = false ]; then
+                    if [ "$detailed_test_output" = true ]; then
                         exit 1;
                     else
                         break;
@@ -150,20 +151,20 @@ TEST_CASE () {
                 fi;
             fi;
         done;
-        if [ "$DETAILED_TEST_OUTPUT" = false ]; then
+        if [ "$detailed_test_output" = false ]; then
             case $SUCCESSFUL_TEST_COUNT in
                 "$MAXIMUM_TEST_COUNT")
                     SUCCESS_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
                     ;;
                 0)
                     ERROR_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
-                    if [ "$CONTINUE_AFTER_ERROR" = false ]; then
+                    if [ "$continue_after_error" = false ]; then
                         exit 1;
                     fi;
                     ;;
                 *)
                     WARNING_MESSAGE "$SUCCESSFUL_TEST_COUNT/$MAXIMUM_TEST_COUNT";
-                    if [ "$CONTINUE_AFTER_ERROR" = false ]; then
+                    if [ "$continue_after_error" = false ]; then
                         exit 1;
                     fi;
                     ;;
@@ -174,21 +175,21 @@ TEST_CASE () {
 
 COMPILE () {
     echo -en "$1 Compiling source code ... ";
-    if [ ! -f $SOURCE_FILE_NAME ]; then
+    if [ ! -f $source_file_name ]; then
         ERROR_MESSAGE "NOT FOUND";
-        if [ "$CONTINUE_AFTER_ERROR" = false ]; then
+        if [ "$continue_after_error" = false ]; then
             exit 0;
         else
             return;
         fi;
     fi;
-    if [ -f $COMPILED_FILE_NAME ]; then
-        md5sum "$SOURCE_FILE_NAME" > "$TEMPORARY_FILE_1";
-        md5sum "$COMPILED_FILE_NAME" >> "$TEMPORARY_FILE_1";
+    if [ -f $compiled_file_name ]; then
+        md5sum "$source_file_name" > "$temporary_file_1";
+        md5sum "$compiled_file_name" >> "$temporary_file_1";
     fi;
-    diff "$HASH_FILE_NAME" "$TEMPORARY_FILE_1" > /dev/null 2>&1;
-    if [ ! $? -eq 0 ] || [ ! -f "$COMPILED_FILE_NAME" ] || [ "$COMPILATION_SKIPPING_ALLOWED" = false ]; then
-        COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$SOURCE_FILE_NAME" -o "$COMPILED_FILE_NAME" -fdiagnostics-color=always 2>&1);
+    diff "$hash_file_name" "$temporary_file_1" > /dev/null 2>&1;
+    if [ ! $? -eq 0 ] || [ ! -f "$compiled_file_name" ] || [ "$compilation_skipping_allowed" = false ]; then
+        COMPILATION_MESSAGES=$(g++ -Wall -pedantic "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ]; then
             if [[ $COMPILATION_MESSAGES ]]; then
                 WARNING_MESSAGE "WARNING";
@@ -202,15 +203,15 @@ COMPILE () {
             SEPARATOR;
             echo "$COMPILATION_MESSAGES";
             SEPARATOR;
-            rm "$HASH_FILE_NAME" 2> /dev/null;
-            if [ "$CONTINUE_AFTER_ERROR" = false ]; then
+            rm "$hash_file_name" 2> /dev/null;
+            if [ "$continue_after_error" = false ]; then
                 exit;
             else
                 return 1;
             fi;
         fi;
-        md5sum "$SOURCE_FILE_NAME" > "$HASH_FILE_NAME";
-        md5sum "$COMPILED_FILE_NAME" >> "$HASH_FILE_NAME";
+        md5sum "$source_file_name" > "$hash_file_name";
+        md5sum "$compiled_file_name" >> "$hash_file_name";
     else
         SUCCESS_MESSAGE "SKIPPED";
     fi;
@@ -223,19 +224,19 @@ RUN_PROGRAM () {
         exit 1;
     fi;
     cd "$2" 2>/dev/null || exit 1;
-    PREFIX="$(GET_PREFIX_COLOR "$1")$2${NO_COLOR}:";
+    PREFIX="$(GET_PREFIX_COLOR "$1")$2${no_color}:";
     if COMPILE "$PREFIX"; then
-        if [ "$RUN_WITHOUT_TESTS" = false ]; then
+        if [ "$run_without_tests" = false ]; then
             for FOLDER in */; do
                 if [ -d "$FOLDER" ]; then
-                    TEST_CASE "$PREFIX" "${FOLDER::-1}" "$INPUT_FILE_SUFFIX" "$OUTPUT_FILE_SUFFIX";
+                    TEST_CASE "$PREFIX" "${FOLDER::-1}" "$input_file_suffix" "$output_file_suffix";
                 fi;
             done;
         else
             SEPARATOR;
-            \time -f "%es" --quiet -o "$TEMPORARY_FILE_1" ./$COMPILED_FILE_NAME;
+            \time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
             RETURN_VALUE="$?";
-            TIME_SPENT=$(cat "$TEMPORARY_FILE_1");
+            TIME_SPENT=$(cat "$temporary_file_1");
             SEPARATOR;
             echo -en "$PREFIX Getting result ... ";
             TEST_RESULTS "$RETURN_VALUE";
@@ -268,25 +269,25 @@ SHOW_HELP () {
     HEADING "Options:";
     COUNT=1;
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-h$NO_COLOR, $COLOR--help$NO_COLOR: Show help and exit";
+    echo -e "$COLOR-h$no_color, $COLOR--help$no_color: Show help and exit";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-l$NO_COLOR, $COLOR--latest$NO_COLOR: Perform tests only on latest folder";
+    echo -e "$COLOR-l$no_color, $COLOR--latest$no_color: Perform tests only on latest folder";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-d$NO_COLOR, $COLOR--detailed$NO_COLOR: Show detailed test output";
+    echo -e "$COLOR-d$no_color, $COLOR--detailed$no_color: Show detailed test output";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-c$NO_COLOR, $COLOR--continue$NO_COLOR: Continue after an error occurs";
+    echo -e "$COLOR-c$no_color, $COLOR--continue$no_color: Continue after an error occurs";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-s$NO_COLOR, $COLOR--skip$NO_COLOR: Skip compilation when possible";
+    echo -e "$COLOR-s$no_color, $COLOR--skip$no_color: Skip compilation when possible";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-q$NO_COLOR, $COLOR--quiet$NO_COLOR: Shows only error and warning messages";
+    echo -e "$COLOR-q$no_color, $COLOR--quiet$no_color: Shows only error and warning messages";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    echo -e "$COLOR-r$NO_COLOR, $COLOR--run$NO_COLOR: Run a program directly (without tests).";
+    echo -e "$COLOR-r$no_color, $COLOR--run$no_color: Run a program directly (without tests).";
     echo "";
     HEADING "Arguments:";
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
@@ -295,7 +296,7 @@ SHOW_HELP () {
     echo "This program runs best with the following file structure (names of folders do not matter, however source code should be saved in Main.c and test files should have the *_in.txt and *_out.txt suffix).";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    printf "\n${COLOR}hw00/${NO_COLOR}\n"
+    printf "\n${COLOR}hw00/${no_color}\n"
     printf "    %s\n" "sample/";
     printf "        %s\n" "0000_in.txt" "0000_out.txt" "...";
     printf "    %s\n" "custom/";
@@ -303,7 +304,7 @@ SHOW_HELP () {
     printf "    %s\n" "Main.c";
     COUNT=$((COUNT+1));
     COLOR=$(GET_PREFIX_COLOR "$COUNT");
-    printf "${COLOR}hw01a/${NO_COLOR}\n"
+    printf "${COLOR}hw01a/${no_color}\n"
     printf "    %s\n" "sample/";
     printf "        %s\n" "...";
     printf "    %s\n" "Main.c";
@@ -318,22 +319,22 @@ PROCESS_OPTION () {
             exit;
             ;;
         -l|--latest)
-            LATEST_FOLDER_ONLY=true;
+            latest_folder_only=true;
             ;;
         -d|--detailed)
-            DETAILED_TEST_OUTPUT=true;
+            detailed_test_output=true;
             ;;
         -c|--continue)
-            CONTINUE_AFTER_ERROR=true;
+            continue_after_error=true;
             ;;
         -s|--skip)
-            COMPILATION_SKIPPING_ALLOWED=true;
+            compilation_skipping_allowed=true;
             ;;
         -q|--quiet)
-            IGNORE_SUCCESS_MESSAGES=true;
+            ignore_success_messages=true;
             ;;
         -r|--run)
-            RUN_WITHOUT_TESTS=true;
+            run_without_tests=true;
             ;;
         *)
             ERROR_MESSAGE "Unknown option: '$1', use '--help' to get list of usable options";
@@ -356,16 +357,16 @@ while :; do
             done <<< "$OPTIONS"
             ;;
         *)
-            SELECTED_FOLDER_NAME="$1";
+            selected_folder_name="$1";
             break;
     esac
     shift;
 done
 
-if [ ! -z $SELECTED_FOLDER_NAME ]; then
+if [ ! -z $selected_folder_name ]; then
     RUN_PROGRAM 1 "$1";
 else
-    if $LATEST_FOLDER_ONLY; then
+    if $latest_folder_only; then
         TEST_LATEST_FOLDER;
     else
         TEST_ALL_FOLDERS;
