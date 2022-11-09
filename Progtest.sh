@@ -8,6 +8,8 @@ temporary_file_2="/tmp/progtest-tmp2.txt";
 hash_file_name=".hash.txt";
 input_file_suffix="_in.txt";
 output_file_suffix="_out.txt";
+sample_archive_name="sample.tgz";
+sample_archive_folder="CZE";
 
 # Colors
 white_bold_color="\033[1;37m";
@@ -219,6 +221,29 @@ compile_source_code () {
     return 0;
 } ;
 
+extract_sample_files () {
+    if [ ! -f $sample_archive_name ]; then
+        return;
+    fi;
+    echo -en "$1 Extracting sample files ... ";
+    tar --wildcards -xzvkf "$sample_archive_name" "*.c" "$sample_archive_folder/*$input_file_suffix" "$sample_archive_folder/*$output_file_suffix" > "$temporary_file_1" 2> "$temporary_file_2";
+    extraction_file_count=$(cat "$temporary_file_1" | wc -l);
+    extraction_warning_count=$(cat "$temporary_file_2" | wc -l);
+    if [ ! $extraction_warning_count -eq 0 ]; then
+        extraction_warning_count=$(($extraction_warning_count - 1));
+    fi;
+    successful_extraction_count=$(($extraction_file_count - $extraction_warning_count));
+    if (( successful_extraction_count > 0 )); then
+        success_message "$successful_extraction_count FILES EXTRACTED";
+    else
+        if [ $extraction_file_count -eq 0 ]; then
+            error_message "NO FILES HAVE MATCHING NAMES";
+        else
+            success_message "NO NEW FILES FOUND";
+        fi;
+    fi;
+} ;
+
 run_program () {
     if [ ! -d "$2" ]; then
         error_message "Cannot find folder '$2'.";
@@ -226,6 +251,7 @@ run_program () {
     fi;
     cd "$2" 2>/dev/null || exit 1;
     prefix_text="$(get_prefix_color "$1")$2${no_color}:";
+    extract_sample_files "$prefix_text";
     if compile_source_code "$prefix_text"; then
         if [ "$run_without_tests" = false ]; then
             for folder_name in */; do
