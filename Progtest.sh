@@ -18,7 +18,7 @@ green_bold_color="\033[1;32m";
 yellow_bold_color="\033[1;33m";
 no_color="\033[0;0m";
 
-# Options
+# Default option values
 detailed_test_output=false;
 latest_folder_only=false;
 continue_after_error=false;
@@ -26,6 +26,7 @@ compilation_skipping_allowed=false;
 ignore_success_messages=false;
 run_without_tests=false;
 selected_folder_name=;
+remove_extracted_archive=false;
 
 show_heading () {
     echo -e "$white_bold_color$1$no_color";
@@ -239,9 +240,22 @@ extract_sample_files () {
             error_message "NO FILES HAVE MATCHING NAMES";
             if [ "$continue_after_error" = false ]; then
                 exit 1;
+            else
+                return;
             fi;
         else
             success_message "NO NEW FILES FOUND";
+        fi;
+    fi;
+    if [ "$remove_extracted_archive" = true ]; then
+        echo -en "$1 Removing sample archive ... ";
+        if rm "$sample_archive_name"; then
+            success_message "ARCHIVE REMOVED";
+        else
+            error_message "REMOVAL FAILED";
+            if [ "$continue_after_error" = false ]; then
+                exit 1;
+            fi;
         fi;
     fi;
 } ;
@@ -316,7 +330,10 @@ show_help () {
     echo -e "$color_text-q$no_color, $color_text--quiet$no_color: Shows only error and warning messages";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-r$no_color, $color_text--run$no_color: Run a program directly (without tests).";
+    echo -e "$color_text-x$no_color, $color_text--execute$no_color: Execute a program directly (without tests).";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-r$no_color, $color_text--remove$no_color: Remove sample archive after successful extraction.";
     echo "";
     show_heading "Arguments:";
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
@@ -362,8 +379,11 @@ process_option () {
         -q|--quiet)
             ignore_success_messages=true;
             ;;
-        -r|--run)
+        -x|--execute)
             run_without_tests=true;
+            ;;
+        -r|--remove)
+            remove_extracted_archive=true;
             ;;
         *)
             error_message "Unknown option: '$1', use '--help' to get list of usable options";
