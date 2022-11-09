@@ -33,7 +33,6 @@ show_heading () {
 
 success_message () {
     if [ "$ignore_success_messages" = true ]; then
-        echo -en "$green_bold_color$1$no_color";
         echo -en "\r\033[K";
     else
         echo -e "$green_bold_color$1$no_color";
@@ -208,7 +207,7 @@ compile_source_code () {
             separating_line;
             rm "$hash_file_name" 2> /dev/null;
             if [ "$continue_after_error" = false ]; then
-                exit;
+                exit 1;
             else
                 return 1;
             fi;
@@ -238,6 +237,9 @@ extract_sample_files () {
     else
         if [ $extraction_file_count -eq 0 ]; then
             error_message "NO FILES HAVE MATCHING NAMES";
+            if [ "$continue_after_error" = false ]; then
+                exit 1;
+            fi;
         else
             success_message "NO NEW FILES FOUND";
         fi;
