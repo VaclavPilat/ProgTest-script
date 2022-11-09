@@ -339,21 +339,22 @@ show_help () {
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
     echo "";
     show_heading "Usage:";
-    echo "This program runs best with the following file structure (names of folders do not matter, however source code should be saved in Main.c and test files should have the *_in.txt and *_out.txt suffix).";
-    color_count=$((color_count+1));
-    color_text=$(get_prefix_color "$color_count");
-    printf "\n%shw00/%s\n" "$color_text" "$no_color"
-    printf "    %s\n" "sample/";
-    printf "        %s\n" "0000_in.txt" "0000_out.txt" "...";
-    printf "    %s\n" "custom/";
-    printf "        %s\n" "...";
-    printf "    %s\n" "Main.c";
-    color_count=$((color_count+1));
-    color_text=$(get_prefix_color "$color_count");
-    printf "\n%shw01a/%s\n" "$color_text" "$no_color"
-    printf "    %s\n" "sample/";
-    printf "        %s\n" "...";
-    printf "    %s\n" "Main.c";
+    echo "The working directory should contain folders with programs. Each folder should have a source code file named \"Main.c\" and folders for test files. Here is an example:";
+    echo "";
+    echo "hw00/";
+    echo "    CZE/";
+    echo "        0000_in.txt";
+    echo "        0000_out.txt";
+    echo "    custom/";
+    echo "        long_input_in.txt";
+    echo "        long_input_out.txt";
+    echo "    Main.c";
+    echo "hw01a/";
+    echo "    sample/";
+    echo "        0000_in.txt";
+    echo "        0000_out.txt";
+    echo "    Main.c";
+    echo "    sample.tgz";
     echo "";
     echo "With no options or arguments provided, the script attempts to compile, run and test all programs inside the working directory.";
 } ;
