@@ -192,7 +192,7 @@ compile_source_code () {
     fi;
     diff "$hash_file_name" "$temporary_file_1" > /dev/null 2>&1;
     if [ ! $? -eq 0 ] || [ ! -f "$compiled_file_name" ] || [ "$compilation_skipping_allowed" = false ]; then
-        compilation_messages=$(g++ -Wall -pedantic "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always 2>&1);
+        compilation_messages=$(g++ -Wall -pedantic -Wno-long-long -O2 "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ]; then
             if [[ $compilation_messages ]]; then
                 warning_message "WARNING";
