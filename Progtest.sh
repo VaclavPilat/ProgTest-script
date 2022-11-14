@@ -178,6 +178,9 @@ test_case () {
 
 compile_source_code () {
     echo -en "$1 Compiling source code ... ";
+    if [ -n "$additional_compilation_options" ]; then
+        compilation_skipping_allowed=false;
+    fi;
     if [ ! -f $source_file_name ]; then
         error_message "NOT FOUND";
         if [ "$continue_after_error" = false ]; then
