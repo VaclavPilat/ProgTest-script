@@ -24,9 +24,9 @@ latest_folder_only=false;
 continue_after_error=false;
 compilation_skipping_allowed=false;
 ignore_success_messages=false;
-run_without_tests=false;
 selected_folder_name=;
 remove_extracted_archive=false;
+program_action_name=;
 
 show_heading () {
     echo -e "$white_bold_color$1$no_color";
@@ -57,13 +57,13 @@ get_prefix_color () {
 } ;
 
 test_results () {
-    if [ "$run_without_tests" = false ]; then
+    if [ -z "$program_action_name" ]; then
         output_difference=$(diff "$3" "$temporary_file_1" 2> /dev/null);
         difference_status="$?";
     fi;
     case "$1" in 
         0)
-            if [ "$run_without_tests" = true ]; then
+            if [ -n "$program_action_name" ]; then
                 success_message "NO ERRORS FOUND, $time_spent";
                 return;
             fi;
@@ -79,32 +79,32 @@ test_results () {
             fi;
             ;;
         130)
-            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ -n "$program_action_name" ]; then
                 warning_message "TERMINATED BY CTRL+C, $time_spent";
             fi;
             ;;
         134)
-            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ -n "$program_action_name" ]; then
                 error_message "ABORTED (FAILED ASSERT?), $time_spent";
             fi;
             ;;
         136)
-            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ -n "$program_action_name" ]; then
                 error_message "FLOATING POINT EXCEPTION, $time_spent";
             fi;
             ;;
         139)
-            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ -n "$program_action_name" ]; then
                 error_message "SEGMENTATION FAULT, $time_spent";
             fi;
             ;;
         *)
-            if [ "$detailed_test_output" = true ] || [ "$run_without_tests" = true ]; then
+            if [ "$detailed_test_output" = true ] || [ -n "$program_action_name" ]; then
                 error_message "PROGRAM RETURNED $return_value, $time_spent";
             fi;
             ;;
     esac
-    if [ "$run_without_tests" = true ]; then
+    if [ -n "$program_action_name" ]; then
         return;
     fi;
     if [ "$detailed_test_output" = true ]; then
@@ -269,21 +269,24 @@ run_program () {
     prefix_text="$(get_prefix_color "$1")$2${no_color}:";
     extract_sample_files "$prefix_text";
     if compile_source_code "$prefix_text"; then
-        if [ "$run_without_tests" = false ]; then
-            for folder_name in */; do
-                if [ -d "$folder_name" ]; then
-                    test_case "$prefix_text" "${folder_name::-1}" "$input_file_suffix" "$output_file_suffix";
-                fi;
-            done;
-        else
-            separating_line;
-            /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
-            return_value="$?";
-            time_spent=$(cat "$temporary_file_1");
-            separating_line;
-            echo -en "$prefix_text Getting result ... ";
-            test_results "$return_value";
-        fi;
+        case $program_action_name in
+            execute)
+                separating_line;
+                /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
+                return_value="$?";
+                time_spent=$(cat "$temporary_file_1");
+                separating_line;
+                echo -en "$prefix_text Getting result ... ";
+                test_results "$return_value";
+                ;;
+            *)
+                for folder_name in */; do
+                    if [ -d "$folder_name" ]; then
+                        test_case "$prefix_text" "${folder_name::-1}" "$input_file_suffix" "$output_file_suffix";
+                    fi;
+                done;
+                ;;
+        esac
     fi;
     cd ..;
 } ;
@@ -381,10 +384,13 @@ process_option () {
             ignore_success_messages=true;
             ;;
         -x|--execute)
-            run_without_tests=true;
+            program_action_name=execute;
             ;;
         -r|--remove)
             remove_extracted_archive=true;
+            ;;
+        -p|--profiler)
+            program_action_name=profiler;
             ;;
         *)
             error_message "Unknown option: '$1', use '--help' to get list of usable options";
@@ -414,7 +420,7 @@ while :; do
 done
 
 if [ -n "$selected_folder_name" ]; then
-    run_program 1 "$1";
+    run_program 1 "$selected_folder_name";
 else
     if $latest_folder_only; then
         test_latest_folder;
