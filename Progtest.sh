@@ -27,6 +27,7 @@ ignore_success_messages=false;
 selected_folder_name=;
 remove_extracted_archive=false;
 program_action_name=;
+additional_compilation_options=;
 
 show_heading () {
     echo -e "$white_bold_color$1$no_color";
@@ -192,7 +193,7 @@ compile_source_code () {
     fi;
     diff "$hash_file_name" "$temporary_file_1" > /dev/null 2>&1;
     if [ ! $? -eq 0 ] || [ ! -f "$compiled_file_name" ] || [ "$compilation_skipping_allowed" = false ]; then
-        compilation_messages=$(g++ -Wall -pedantic -Wno-long-long -O2 "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always 2>&1);
+        compilation_messages=$(g++ -Wall -pedantic -Wno-long-long -O2 "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always $additional_compilation_options 2>&1);
         if [ $? -eq 0 ]; then
             if [[ $compilation_messages ]]; then
                 warning_message "WARNING";
@@ -270,7 +271,7 @@ run_program () {
     extract_sample_files "$prefix_text";
     if compile_source_code "$prefix_text"; then
         case $program_action_name in
-            execute)
+            execute|profiler)
                 separating_line;
                 /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
                 return_value="$?";
@@ -278,6 +279,11 @@ run_program () {
                 separating_line;
                 echo -en "$prefix_text Getting result ... ";
                 test_results "$return_value";
+                if [ "$program_action_name" = profiler ] && [ "$return_value" -eq 0 ]; then
+                    separating_line;
+                    gprof "$compiled_file_name" gmon.out;
+                    separating_line;
+                fi;
                 ;;
             *)
                 for folder_name in */; do
@@ -312,10 +318,12 @@ test_latest_folder () {
 } ;
 
 show_help () {
-    show_heading "Options:";
     color_count=1;
+    show_heading "Program information:";
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-h$no_color, $color_text--help$no_color: Show help and exit";
+    echo "";
+    show_heading "Modifiers (can be combined):";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-l$no_color, $color_text--latest$no_color: Perform tests only on latest folder";
@@ -333,10 +341,15 @@ show_help () {
     echo -e "$color_text-q$no_color, $color_text--quiet$no_color: Shows only error and warning messages";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-r$no_color, $color_text--remove$no_color: Remove sample archive after successful extraction.";
+    echo "";
+    show_heading "Program actions (should not be combined):";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-x$no_color, $color_text--execute$no_color: Execute a program directly (without tests).";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-r$no_color, $color_text--remove$no_color: Remove sample archive after successful extraction.";
+    echo -e "$color_text-p$no_color, $color_text--profiler$no_color: Run a profiler on the program (without tests).";
     echo "";
     show_heading "Arguments:";
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
@@ -391,6 +404,7 @@ process_option () {
             ;;
         -p|--profiler)
             program_action_name=profiler;
+            additional_compilation_options="-pg";
             ;;
         *)
             error_message "Unknown option: '$1', use '--help' to get list of usable options";
