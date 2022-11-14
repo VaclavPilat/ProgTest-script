@@ -227,16 +227,16 @@ extract_sample_files () {
     fi;
     echo -en "$1 Extracting sample files ... ";
     tar --wildcards -xzvkf "$sample_archive_name" "*.c" "$sample_archive_folder/*$input_file_suffix" "$sample_archive_folder/*$output_file_suffix" > "$temporary_file_1" 2> "$temporary_file_2";
-    extraction_file_count=$(cat "$temporary_file_1" | wc -l);
-    extraction_warning_count=$(cat "$temporary_file_2" | wc -l);
-    if [ ! $extraction_warning_count -eq 0 ]; then
-        extraction_warning_count=$(($extraction_warning_count - 1));
+    extraction_file_count=$(wc -l < "$temporary_file_1");
+    extraction_warning_count=$(wc -l < "$temporary_file_2");
+    if [ ! "$extraction_warning_count" -eq 0 ]; then
+        extraction_warning_count=$((extraction_warning_count - 1));
     fi;
-    successful_extraction_count=$(($extraction_file_count - $extraction_warning_count));
+    successful_extraction_count=$((extraction_file_count - extraction_warning_count));
     if (( successful_extraction_count > 0 )); then
         success_message "$successful_extraction_count FILES EXTRACTED";
     else
-        if [ $extraction_file_count -eq 0 ]; then
+        if [ "$extraction_file_count" -eq 0 ]; then
             error_message "NO FILES HAVE MATCHING NAMES";
             if [ "$continue_after_error" = false ]; then
                 exit 1;
