@@ -20,7 +20,6 @@ no_color="\033[0;0m";
 
 # Default option values
 detailed_test_output=false;
-latest_folder_only=false;
 continue_after_error=false;
 compilation_skipping_allowed=false;
 ignore_success_messages=false;
@@ -326,9 +325,6 @@ show_help () {
     show_heading "Modifiers (can be combined):";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-l$no_color, $color_text--latest$no_color: Perform tests only on latest folder";
-    color_count=$((color_count+1));
-    color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-d$no_color, $color_text--detailed$no_color: Show detailed test output";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
@@ -380,9 +376,6 @@ process_option () {
         -h|--help)
             show_help;
             exit;
-            ;;
-        -l|--latest)
-            latest_folder_only=true;
             ;;
         -d|--detailed)
             detailed_test_output=true;
@@ -436,9 +429,5 @@ done
 if [ -n "$selected_folder_name" ]; then
     run_program 1 "$selected_folder_name";
 else
-    if $latest_folder_only; then
-        test_latest_folder;
-    else
-        test_all_folders;
-    fi;
+    test_all_folders;
 fi;
