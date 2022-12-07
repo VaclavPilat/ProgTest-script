@@ -27,6 +27,7 @@ selected_folder_name=;
 remove_extracted_archive=false;
 program_action_name=;
 additional_compilation_options=;
+side_by_side_comparison=false;
 
 show_heading () {
     echo -e "$white_bold_color$1$no_color";
@@ -58,8 +59,13 @@ get_prefix_color () {
 
 test_results () {
     if [ -z "$program_action_name" ]; then
-        output_difference=$(diff "$3" "$temporary_file_1" 2> /dev/null);
-        difference_status="$?";
+        if [ "$side_by_side_comparison" = true ]; then
+            output_difference=$(diff -y <(nl -n'ln' "$3") <(nl -n'ln' "$temporary_file_1") 2> /dev/null);
+            difference_status="$?";
+        else
+            output_difference=$(diff "$3" "$temporary_file_1" 2> /dev/null);
+            difference_status="$?";
+        fi;
     fi;
     case "$1" in 
         0)
@@ -341,6 +347,9 @@ show_help () {
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-r$no_color, $color_text--remove$no_color: Remove sample archive after successful extraction.";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-a$no_color, $color_text--alongside$no_color: Shows file comparison side by side.";
     echo "";
     show_heading "Program actions (should not be combined):";
     color_count=$((color_count+1));
@@ -392,11 +401,14 @@ process_option () {
         -q|--quiet)
             ignore_success_messages=true;
             ;;
-        -x|--execute)
-            program_action_name=execute;
-            ;;
         -r|--remove)
             remove_extracted_archive=true;
+            ;;
+        -a|--alongside)
+            side_by_side_comparison=true;
+            ;;
+        -x|--execute)
+            program_action_name=execute;
             ;;
         -p|--profiler)
             program_action_name=profiler;
