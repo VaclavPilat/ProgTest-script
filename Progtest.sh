@@ -1,5 +1,7 @@
 #!/bin/bash
 
+program_version=1.0;
+
 # File names
 source_file_name="Main.c";
 compiled_file_name="a.out";
@@ -11,13 +13,6 @@ output_file_suffix="_out.txt";
 sample_archive_name="sample.tgz";
 sample_archive_folder="CZE";
 
-# Colors
-white_bold_color="\033[1;37m";
-red_bold_color="\033[1;31m";
-green_bold_color="\033[1;32m";
-yellow_bold_color="\033[1;33m";
-no_color="\033[0;0m";
-
 # Default option values
 detailed_test_output=false;
 continue_after_error=false;
@@ -28,6 +23,13 @@ remove_extracted_archive=false;
 program_action_name=;
 additional_compilation_options=;
 side_by_side_comparison=false;
+
+# Colors
+white_bold_color="\033[1;37m";
+red_bold_color="\033[1;31m";
+green_bold_color="\033[1;32m";
+yellow_bold_color="\033[1;33m";
+no_color="\033[0;0m";
 
 show_heading () {
     echo -e "$white_bold_color$1$no_color";
@@ -325,11 +327,20 @@ test_latest_folder () {
     run_program 1 "${latest_folder::-1}";
 } ;
 
+show_version () {
+    show_heading "ProgTest script v$program_version";
+    echo "Written by Václav Pilát";
+    echo "Report bugs by creating an issue on Github: https://github.com/VaclavPilat/ProgTest-script";
+}
+
 show_help () {
     color_count=1;
     show_heading "Program information:";
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-h$no_color, $color_text--help$no_color: Show help and exit";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-v$no_color, $color_text--version$no_color: Show version and exit";
     echo "";
     show_heading "Modifiers (can be combined):";
     color_count=$((color_count+1));
@@ -387,6 +398,10 @@ process_option () {
     case $1 in
         -h|--help)
             show_help;
+            exit;
+            ;;
+        -v|--version)
+            show_version;
             exit;
             ;;
         -d|--detailed)
