@@ -343,14 +343,21 @@ show_version () {
 
 show_help () {
     color_count=1;
-    show_heading "Program information:";
+    show_heading "Usage:";
+    echo "./Progtest.sh [options] [foldername]";
+    echo "";
+    show_heading "Examples of usage:";
+    echo "./Progtest.sh -ac";
+    echo "./Progtest.sh -adsrl hw07a";
+    echo "";
+    show_heading "Program information options:";
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-h$no_color, $color_text--help$no_color: Show help and exit";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-v$no_color, $color_text--version$no_color: Show version and exit";
     echo "";
-    show_heading "Modifiers (can be combined):";
+    show_heading "Modifier options (can be combined):";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-d$no_color, $color_text--detailed$no_color: Show detailed test output";
@@ -370,7 +377,7 @@ show_help () {
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-l$no_color, $color_text--columns$no_color: Shows file comparison side by side";
     echo "";
-    show_heading "Program actions (should not be combined):";
+    show_heading "Program action options (should not be combined):";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-x$no_color, $color_text--execute$no_color: Execute a program directly (without tests)";
@@ -381,7 +388,7 @@ show_help () {
     show_heading "Arguments:";
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
     echo "";
-    show_heading "Usage:";
+    show_heading "Notes:";
     echo "The working directory should contain folders with programs. Each folder should have a source code file named \"Main.c\" and folders for test files. Here is an example:";
     echo "";
     echo "hw00/";
