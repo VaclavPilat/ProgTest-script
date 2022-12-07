@@ -20,7 +20,7 @@ compilation_skipping_allowed=false;
 ignore_success_messages=false;
 selected_folder_name=;
 remove_extracted_archive=false;
-program_action_name=autoexecute;
+program_action_name=;
 side_by_side_comparison=false;
 
 # Colors
@@ -368,7 +368,7 @@ show_help () {
     echo -e "$color_text-r$no_color, $color_text--remove$no_color: Remove sample archive after successful extraction.";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-a$no_color, $color_text--alongside$no_color: Shows file comparison side by side.";
+    echo -e "$color_text-l$no_color, $color_text--columns$no_color: Shows file comparison side by side.";
     echo "";
     show_heading "Program actions (should not be combined):";
     color_count=$((color_count+1));
@@ -424,7 +424,7 @@ process_option () {
         -r|--remove)
             remove_extracted_archive=true;
             ;;
-        -a|--alongside)
+        -l|--columns)
             side_by_side_comparison=true;
             ;;
         -x|--execute)
