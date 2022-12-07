@@ -71,7 +71,11 @@ test_results () {
     case "$1" in 
         0)
             if [ -n "$program_action_name" ]; then
-                success_message "NO ERRORS FOUND, $time_spent";
+                if [ "$detailed_test_output" = true ]; then
+                    success_message "NO ERRORS FOUND, $time_spent";
+                    return;
+                fi;
+                success_message "NO ERRORS FOUND";
                 return;
             fi;
             if [ "$difference_status" -eq 0 ]; then
@@ -281,11 +285,16 @@ start_program () {
     if compile_source_code "$prefix_text"; then
         case $program_action_name in
             execute)
-                separating_line;
-                /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
-                return_value="$?";
-                time_spent=$(cat "$temporary_file_1");
-                separating_line;
+                if [ "$detailed_test_output" = true ]; then
+                    separating_line;
+                    /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
+                    return_value="$?";
+                    time_spent=$(cat "$temporary_file_1");
+                    separating_line;
+                else
+                    ./$compiled_file_name >/dev/null 2>&1;
+                    return_value="$?";
+                fi;
                 echo -en "$prefix_text Getting result ... ";
                 test_results "$return_value";
                 ;;
