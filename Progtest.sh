@@ -20,8 +20,7 @@ compilation_skipping_allowed=false;
 ignore_success_messages=false;
 selected_folder_name=;
 remove_extracted_archive=false;
-program_action_name=;
-additional_compilation_options=;
+program_action_name=autoexecute;
 side_by_side_comparison=false;
 
 # Colors
@@ -203,7 +202,7 @@ compile_source_code () {
     fi;
     diff "$hash_file_name" "$temporary_file_1" > /dev/null 2>&1;
     if [ ! $? -eq 0 ] || [ ! -f "$compiled_file_name" ] || [ "$compilation_skipping_allowed" = false ]; then
-        compilation_messages=$(g++ -Wall -pedantic -Wno-long-long -O2 "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always $additional_compilation_options 2>&1);
+        compilation_messages=$(g++ -Wall -pedantic -Wno-long-long -O2 "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always 2>&1);
         if [ $? -eq 0 ]; then
             if [[ $compilation_messages ]]; then
                 warning_message "WARNING";
@@ -271,7 +270,7 @@ extract_sample_files () {
     fi;
 } ;
 
-run_program () {
+start_program () {
     if [ ! -d "$2" ]; then
         error_message "Cannot find folder '$2'.";
         exit 1;
@@ -305,6 +304,21 @@ run_program () {
         esac
     fi;
     cd ..;
+} ;
+
+run_program () {
+    if [ "$program_action_name" = autoexecute ]; then
+        folder_count=$(find "$2" -maxdepth 1 -type d | wc -l);
+        if [ "$folder_count" -eq 1 ]; then
+            program_action_name=execute;
+        else
+            program_action_name=;
+        fi;
+        start_program "$1" "$2";
+        program_action_name=autoexecute;
+    else
+        start_program "$1" "$2";
+    fi;
 } ;
 
 test_all_folders () {
