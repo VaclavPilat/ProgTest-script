@@ -365,15 +365,18 @@ show_help () {
     echo -e "$color_text-q$no_color, $color_text--quiet$no_color: Shows only error and warning messages";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-r$no_color, $color_text--remove$no_color: Remove sample archive after successful extraction.";
+    echo -e "$color_text-r$no_color, $color_text--remove$no_color: Remove sample archive after successful extraction";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-l$no_color, $color_text--columns$no_color: Shows file comparison side by side.";
+    echo -e "$color_text-l$no_color, $color_text--columns$no_color: Shows file comparison side by side";
     echo "";
     show_heading "Program actions (should not be combined):";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-x$no_color, $color_text--execute$no_color: Execute a program directly (without tests).";
+    echo -e "$color_text-x$no_color, $color_text--execute$no_color: Execute a program directly (without tests)";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-a$no_color, $color_text--autoexecute$no_color: Determine whether to perform tests or run directly";
     echo "";
     show_heading "Arguments:";
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
@@ -429,6 +432,9 @@ process_option () {
             ;;
         -x|--execute)
             program_action_name=execute;
+            ;;
+        -a|--autoexecute)
+            program_action_name=autoexecute;
             ;;
         *)
             error_message "Unknown option: '$1', use '--help' to get list of usable options";
