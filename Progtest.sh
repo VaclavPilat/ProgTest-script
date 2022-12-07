@@ -280,7 +280,7 @@ start_program () {
     extract_sample_files "$prefix_text";
     if compile_source_code "$prefix_text"; then
         case $program_action_name in
-            execute|profiler)
+            execute)
                 separating_line;
                 /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
                 return_value="$?";
@@ -288,11 +288,6 @@ start_program () {
                 separating_line;
                 echo -en "$prefix_text Getting result ... ";
                 test_results "$return_value";
-                if [ "$program_action_name" = profiler ] && [ "$return_value" -eq 0 ]; then
-                    separating_line;
-                    gprof "$compiled_file_name" gmon.out;
-                    separating_line;
-                fi;
                 ;;
             *)
                 for folder_name in */; do
@@ -329,16 +324,6 @@ test_all_folders () {
             color_count=$((color_count+1));
         fi;
     done;
-} ;
-
-test_latest_folder () {
-    folder_count=$(ls -d * 2>/dev/null | wc -l);
-    if [ "$folder_count" -eq 0 ]; then
-        error_message "No folder found!";
-        exit 1;
-    fi;
-    latest_folder=$(ls -td */ | head -1);
-    run_program 1 "${latest_folder::-1}";
 } ;
 
 show_version () {
@@ -380,9 +365,6 @@ show_help () {
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-x$no_color, $color_text--execute$no_color: Execute a program directly (without tests).";
-    color_count=$((color_count+1));
-    color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-p$no_color, $color_text--profiler$no_color: Run a profiler on the program (without tests).";
     echo "";
     show_heading "Arguments:";
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
@@ -438,10 +420,6 @@ process_option () {
             ;;
         -x|--execute)
             program_action_name=execute;
-            ;;
-        -p|--profiler)
-            program_action_name=profiler;
-            additional_compilation_options="-pg";
             ;;
         *)
             error_message "Unknown option: '$1', use '--help' to get list of usable options";
