@@ -13,6 +13,8 @@ output_file_suffix="_out.txt";
 sample_archive_name="sample.tgz";
 sample_archive_folder="CZE";
 
+compilation_command="g++ -Wall -pedantic -Wno-long-long -O2 $source_file_name -o $compiled_file_name -fdiagnostics-color=always";
+
 # Default option values
 detailed_test_output=false;
 continue_after_error=false;
@@ -24,11 +26,11 @@ program_action_name=;
 side_by_side_comparison=false;
 
 # Colors
-white_bold_color="\033[1;37m";
+no_color="\033[0;0m";
 red_bold_color="\033[1;31m";
 green_bold_color="\033[1;32m";
 yellow_bold_color="\033[1;33m";
-no_color="\033[0;0m";
+white_bold_color="\033[1;37m";
 
 show_heading () {
     echo -e "$white_bold_color$1$no_color";
@@ -48,6 +50,10 @@ error_message () {
 
 warning_message () {
     echo -e "$yellow_bold_color$1$no_color";
+} ;
+
+info_message () {
+    echo -e "$white_bold_color$1$no_color";
 } ;
 
 separating_line () {
@@ -206,7 +212,7 @@ compile_source_code () {
     fi;
     diff "$hash_file_name" "$temporary_file_1" > /dev/null 2>&1;
     if [ ! $? -eq 0 ] || [ ! -f "$compiled_file_name" ] || [ "$compilation_skipping_allowed" = false ]; then
-        compilation_messages=$(g++ -Wall -pedantic -Wno-long-long -O2 "$source_file_name" -o "$compiled_file_name" -fdiagnostics-color=always 2>&1);
+        compilation_messages=$($compilation_command 2>&1);
         if [ $? -eq 0 ]; then
             if [[ $compilation_messages ]]; then
                 warning_message "WARNING";
@@ -333,6 +339,15 @@ test_all_folders () {
             color_count=$((color_count+1));
         fi;
     done;
+} ;
+
+show_info () {
+    script_basename=$(basename "$0");
+    message_prefix="$white_bold_color$script_basename$no_color:";
+    echo -en "$message_prefix To show program information, use option: ";
+    info_message "--help";
+    echo -en "$message_prefix Compilation command: ";
+    info_message "$compilation_command";
 } ;
 
 show_version () {
@@ -469,6 +484,8 @@ while :; do
     esac
     shift;
 done
+
+show_info;
 
 if [ -n "$selected_folder_name" ]; then
     run_program 1 "$selected_folder_name";
