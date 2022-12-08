@@ -492,8 +492,10 @@ while :; do
                 fi;
             done <<< "$program_options"
             ;;
-        *)
+        ?*)
             selected_folder_name="$1";
+            ;;
+        *)
             break;
     esac
     shift;
