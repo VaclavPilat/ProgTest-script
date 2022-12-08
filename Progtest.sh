@@ -13,7 +13,10 @@ output_file_suffix="_out.txt";
 sample_archive_name="sample.tgz";
 sample_archive_folder="CZE";
 
+# Commands for compilation and running
 compilation_command="g++ -Wall -pedantic -Wno-long-long -O2 $source_file_name -o $compiled_file_name -fdiagnostics-color=always";
+testing_command="./$compiled_file_name";
+execution_command="./$compiled_file_name";
 
 # Default option values
 detailed_test_output=false;
@@ -140,7 +143,7 @@ single_test () {
             echo -en "$1 Testing $2 ... ";
         fi;
         output_file=${2%"$3"}$4;
-        /usr/bin/time -f "%es" --quiet -o "$temporary_file_2" ./$compiled_file_name < "$2" > "$temporary_file_1" 2>&1;
+        /usr/bin/time -f "%es" --quiet -o "$temporary_file_2" $testing_command < "$2" > "$temporary_file_1" 2>&1;
         return_value="$?";
         time_spent=$(cat "$temporary_file_2");
         if test_results "$return_value" "$2" "$output_file"; then 
@@ -293,7 +296,7 @@ start_program () {
             execute)
                 if [ "$detailed_test_output" = true ]; then
                     separating_line;
-                    /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" ./$compiled_file_name;
+                    /usr/bin/time -f "%es" --quiet -o "$temporary_file_1" $execution_command;
                     return_value="$?";
                     time_spent=$(cat "$temporary_file_1");
                     separating_line;
@@ -348,6 +351,10 @@ show_info () {
     info_message "--help";
     echo -en "$message_prefix Compilation command: ";
     info_message "$compilation_command";
+    echo -en "$message_prefix Testing command: ";
+    info_message "$testing_command < INPUT_FILE > $temporary_file_1";
+    echo -en "$message_prefix Execution command: ";
+    info_message "$execution_command";
 } ;
 
 show_version () {
