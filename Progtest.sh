@@ -31,6 +31,7 @@ side_by_side_comparison=false;
 
 # Colors
 no_color="\033[0;0m";
+grey_color="\033[0;30m";
 red_bold_color="\033[1;31m";
 green_bold_color="\033[1;32m";
 yellow_bold_color="\033[1;33m";
@@ -347,14 +348,14 @@ test_all_folders () {
 
 show_info () {
     script_basename=$(basename "$0");
-    message_prefix="$white_bold_color$script_basename$no_color:";
+    message_prefix="$grey_color$script_basename$no_color:";
     echo -en "$message_prefix To show program information, use option: ";
     info_message "--help";
-    echo -en "$message_prefix Compilation command: ";
+    echo -en "$message_prefix Compilation command used: ";
     info_message "$compilation_command";
-    echo -en "$message_prefix Testing command: ";
+    echo -en "$message_prefix Testing command used: ";
     info_message "$testing_command < INPUT_FILE > $temporary_file_1";
-    echo -en "$message_prefix Execution command: ";
+    echo -en "$message_prefix Execution command used: ";
     info_message "$execution_command";
 } ;
 
@@ -379,6 +380,9 @@ show_help () {
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-v$no_color, $color_text--version$no_color: Show version and exit";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-i$no_color, $color_text--info$no_color: Show startup information and exit";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-n$no_color, $color_text--noinfo$no_color: Hide startup information";
@@ -443,6 +447,10 @@ process_option () {
             ;;
         -v|--version)
             show_version;
+            exit;
+            ;;
+        -i|--info)
+            show_info;
             exit;
             ;;
         -n|--noinfo)
