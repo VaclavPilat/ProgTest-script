@@ -19,6 +19,7 @@ testing_command="./$compiled_file_name";
 execution_command="./$compiled_file_name";
 
 # Default option values
+show_startup_info=true;
 detailed_test_output=false;
 continue_after_error=false;
 compilation_skipping_allowed=false;
@@ -378,6 +379,9 @@ show_help () {
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-v$no_color, $color_text--version$no_color: Show version and exit";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-n$no_color, $color_text--noinfo$no_color: Hide startup information";
     echo "";
     show_heading "Modifier options (can be combined):";
     color_count=$((color_count+1));
@@ -441,6 +445,9 @@ process_option () {
             show_version;
             exit;
             ;;
+        -n|--noinfo)
+            show_startup_info=false;
+            ;;
         -d|--detailed)
             detailed_test_output=true;
             ;;
@@ -492,7 +499,9 @@ while :; do
     shift;
 done
 
-show_info;
+if [ "$show_startup_info" = true ]; then
+    show_info;
+fi;
 
 if [ -n "$selected_folder_name" ]; then
     run_program 1 "$selected_folder_name";
