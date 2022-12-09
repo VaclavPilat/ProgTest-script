@@ -353,15 +353,18 @@ test_all_folders () {
 show_info () {
     script_basename=$(basename "$0");
     message_prefix="$grey_color$script_basename$no_color:";
-    echo -en "$message_prefix To show program information, use option: ";
+    echo -en "$message_prefix To show help and list of options, use option: ";
     info_message "--help";
     if [ "$show_startup_info" = true ]; then
         echo -en "$message_prefix Compilation command used: ";
         info_message "$compilation_command";
         echo -en "$message_prefix Testing command used: ";
-        info_message "$testing_command < INPUT_FILE > $temporary_file_1";
+        info_message "$testing_command";
         echo -en "$message_prefix Execution command used: ";
         info_message "$execution_command";
+    else
+        echo -en "$message_prefix To show program information, use option: ";
+        info_message "--info";
     fi;
 } ;
 
