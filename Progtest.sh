@@ -19,7 +19,7 @@ testing_command="./$compiled_file_name";
 execution_command="./$compiled_file_name";
 
 # Default option values
-show_startup_info=true;
+show_startup_info=false;
 detailed_test_output=false;
 continue_after_error=false;
 compilation_skipping_allowed=false;
@@ -58,7 +58,11 @@ warning_message () {
 } ;
 
 info_message () {
-    echo -e "$white_bold_color$1$no_color";
+    if [ "$ignore_success_messages" = true ]; then
+        echo -en "\r\033[K";
+    else
+        echo -e "$white_bold_color$1$no_color";
+    fi;
 } ;
 
 separating_line () {
@@ -351,12 +355,14 @@ show_info () {
     message_prefix="$grey_color$script_basename$no_color:";
     echo -en "$message_prefix To show program information, use option: ";
     info_message "--help";
-    echo -en "$message_prefix Compilation command used: ";
-    info_message "$compilation_command";
-    echo -en "$message_prefix Testing command used: ";
-    info_message "$testing_command < INPUT_FILE > $temporary_file_1";
-    echo -en "$message_prefix Execution command used: ";
-    info_message "$execution_command";
+    if [ "$show_startup_info" = true ]; then
+        echo -en "$message_prefix Compilation command used: ";
+        info_message "$compilation_command";
+        echo -en "$message_prefix Testing command used: ";
+        info_message "$testing_command < INPUT_FILE > $temporary_file_1";
+        echo -en "$message_prefix Execution command used: ";
+        info_message "$execution_command";
+    fi;
 } ;
 
 show_version () {
@@ -382,10 +388,7 @@ show_help () {
     echo -e "$color_text-v$no_color, $color_text--version$no_color: Show version and exit";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-i$no_color, $color_text--info$no_color: Show startup information and exit";
-    color_count=$((color_count+1));
-    color_text=$(get_prefix_color "$color_count");
-    echo -e "$color_text-n$no_color, $color_text--noinfo$no_color: Hide startup information";
+    echo -e "$color_text-i$no_color, $color_text--info$no_color: Show startup information";
     echo "";
     show_heading "Modifier options (can be combined):";
     color_count=$((color_count+1));
@@ -450,11 +453,7 @@ process_option () {
             exit;
             ;;
         -i|--info)
-            show_info;
-            exit;
-            ;;
-        -n|--noinfo)
-            show_startup_info=false;
+            show_startup_info=true;
             ;;
         -d|--detailed)
             detailed_test_output=true;
@@ -509,9 +508,7 @@ while :; do
     shift;
 done
 
-if [ "$show_startup_info" = true ]; then
-    show_info;
-fi;
+show_info;
 
 if [ -n "$selected_folder_name" ]; then
     run_program 1 "$selected_folder_name";
