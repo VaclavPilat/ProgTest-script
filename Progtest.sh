@@ -380,7 +380,7 @@ show_help () {
     show_heading "Examples of usage:";
     echo "./$script_basename -ac";
     echo "./$script_basename -adsrl hw07a";
-    echo "./$script_basename -dsx cv12b -i -X \"valgrind ./a.out\"";
+    echo "./$script_basename -dsx cv12b -X \"valgrind ./a.out\" -i";
     echo "";
     show_heading "Program information options:";
     color_text=$(get_prefix_color "$color_count");
