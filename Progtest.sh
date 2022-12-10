@@ -1,6 +1,7 @@
 #!/bin/bash
 
 program_version=1.0;
+script_basename=$(basename "$0");
 
 # File names
 source_file_name="Main.c";
@@ -19,7 +20,6 @@ testing_command="./$compiled_file_name";
 execution_command="./$compiled_file_name";
 
 # Default option values
-show_startup_info=false;
 detailed_test_output=false;
 continue_after_error=false;
 compilation_skipping_allowed=false;
@@ -350,22 +350,20 @@ test_all_folders () {
     done;
 } ;
 
-show_info () {
-    script_basename=$(basename "$0");
-    message_prefix="$grey_color$script_basename$no_color:";
-    echo -en "$message_prefix To show help and list of options, use option: ";
+show_line_about_info () {
+    info_prefix="$grey_color$script_basename$no_color:";
+    echo -en "$info_prefix To show help and list of options, use option: ";
     info_message "--help";
-    if [ "$show_startup_info" = true ]; then
-        echo -en "$message_prefix Compilation command used: ";
-        info_message "$compilation_command";
-        echo -en "$message_prefix Testing command used: ";
-        info_message "$testing_command";
-        echo -en "$message_prefix Execution command used: ";
-        info_message "$execution_command";
-    else
-        echo -en "$message_prefix To show program information, use option: ";
-        info_message "--info";
-    fi;
+}
+
+show_info () {
+    info_prefix="$grey_color$script_basename$no_color:";
+    echo -en "$info_prefix Compilation command used: ";
+    info_message "$compilation_command";
+    echo -en "$info_prefix Testing command used: ";
+    info_message "$testing_command";
+    echo -en "$info_prefix Execution command used: ";
+    info_message "$execution_command";
 } ;
 
 show_version () {
@@ -377,12 +375,12 @@ show_version () {
 show_help () {
     color_count=1;
     show_heading "Usage:";
-    echo "./Progtest.sh [OPTIONS|FOLDERPATH]";
+    echo "./$script_basename [OPTIONS|FOLDERPATH]";
     echo "";
     show_heading "Examples of usage:";
-    echo "./Progtest.sh -ac";
-    echo "./Progtest.sh -adsrl hw07a";
-    echo './Progtest.sh -dsx cv12b -i -X "valgrind ./a.out"';
+    echo "./$script_basename -ac";
+    echo "./$script_basename -adsrl hw07a";
+    echo "./$script_basename -dsx cv12b -i -X \"valgrind ./a.out\"";
     echo "";
     show_heading "Program information options:";
     color_text=$(get_prefix_color "$color_count");
@@ -393,6 +391,9 @@ show_help () {
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-i$no_color, $color_text--info$no_color: Show startup information";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-I$no_color, $color_text--info-only$no_color: Show startup information and exit";
     echo "";
     show_heading "Modifier options:";
     color_count=$((color_count+1));
@@ -450,7 +451,11 @@ process_option () {
             exit;
             ;;
         -i|--info)
-            show_startup_info=true;
+            show_info;
+            ;;
+        -I|--info-only)
+            show_info;
+            exit;
             ;;
         -d|--detailed)
             detailed_test_output=true;
@@ -532,7 +537,7 @@ while :; do
     shift;
 done
 
-show_info;
+show_line_about_info;
 
 if [ -n "$selected_folder_name" ]; then
     run_program 1 "$selected_folder_name";
