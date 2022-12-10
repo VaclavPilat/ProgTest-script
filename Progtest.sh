@@ -393,7 +393,7 @@ show_help () {
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-i$no_color, $color_text--info$no_color: Show startup information";
     echo "";
-    show_heading "Modifier options (can be combined):";
+    show_heading "Modifier options:";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-d$no_color, $color_text--detailed$no_color: Show detailed test output";
@@ -420,6 +420,20 @@ show_help () {
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-a$no_color, $color_text--autoexecute$no_color: Determine whether to perform tests or run directly";
+    echo "";
+    show_heading "Options for changing commands:";
+    echo "You can use these to alter the behaviour of the compilator or the programs being run.";
+    echo "These options expect the next argument to be the value to use as a command.";
+    echo "It is recommended to use with the -I option to check if it was successfully set.";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-C$no_color, $color_text--compilation-command$no_color: Set compilation command";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-T$no_color, $color_text--testing-command$no_color: Set command for testing programs against input files";
+    color_count=$((color_count+1));
+    color_text=$(get_prefix_color "$color_count");
+    echo -e "$color_text-X$no_color, $color_text--execution-command$no_color: Set command for direct script execution";
     echo "";
     show_heading "Arguments:";
     echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
@@ -482,17 +496,44 @@ process_option () {
         -a|--autoexecute)
             program_action_name=autoexecute;
             ;;
+        -C|--compilation-command)
+            if [ -z "$2" ]; then
+                error_message "Option $1 was supplied without value!";
+                exit 1;
+            fi;
+            compilation_command="$2";
+            return 1;
+            ;;
+        -T|--testing-command)
+            if [ -z "$2" ]; then
+                error_message "Option $1 was supplied without value!";
+                exit 1;
+            fi;
+            testing_command="$2";
+            return 1;
+            ;;
+        -X|--execution-command)
+            if [ -z "$2" ]; then
+                error_message "Option $1 was supplied without value!";
+                exit 1;
+            fi;
+            execution_command="$2";
+            return 1;
+            ;;
         *)
             error_message "Unknown option: '$1', use '--help' to get list of usable options";
             exit 1;
             ;;
     esac
+    return 0;
 } ;
 
 while :; do
     case $1 in
         -?|--*)
-            process_option "$1";
+            if ! process_option "$1" "$2"; then
+                shift;
+            fi;
             ;;
         -?*)
             program_options="${1:1}";
