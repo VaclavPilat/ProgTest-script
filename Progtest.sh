@@ -377,11 +377,12 @@ show_version () {
 show_help () {
     color_count=1;
     show_heading "Usage:";
-    echo "./Progtest.sh [options] [foldername]";
+    echo "./Progtest.sh [OPTIONS|FOLDERPATH]";
     echo "";
     show_heading "Examples of usage:";
     echo "./Progtest.sh -ac";
     echo "./Progtest.sh -adsrl hw07a";
+    echo './Progtest.sh -dsx cv12b -i -X "valgrind ./a.out"';
     echo "";
     show_heading "Program information options:";
     color_text=$(get_prefix_color "$color_count");
@@ -413,7 +414,9 @@ show_help () {
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-l$no_color, $color_text--columns$no_color: Shows file comparison side by side";
     echo "";
-    show_heading "Program action options (should not be combined):";
+    show_heading "Program action options:";
+    echo "These options should not be combined.";
+    echo "When no option is used, the script will test programs that have test files."
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-x$no_color, $color_text--execute$no_color: Execute a program directly (without tests)";
@@ -424,7 +427,7 @@ show_help () {
     show_heading "Options for changing commands:";
     echo "You can use these to alter the behaviour of the compilator or the programs being run.";
     echo "These options expect the next argument to be the value to use as a command.";
-    echo "It is recommended to use with the -I option to check if it was successfully set.";
+    echo "It is recommended to use with the info option to check if it was successfully set.";
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-C$no_color, $color_text--compilation-command$no_color: Set compilation command";
@@ -434,29 +437,6 @@ show_help () {
     color_count=$((color_count+1));
     color_text=$(get_prefix_color "$color_count");
     echo -e "$color_text-X$no_color, $color_text--execution-command$no_color: Set command for direct script execution";
-    echo "";
-    show_heading "Arguments:";
-    echo "This program takes one optional argument: address to a single folder with a program you want to test. If not provided (and option --latest is not being used), the program will run on all folders inside working directory.";
-    echo "";
-    show_heading "Notes:";
-    echo "The working directory should contain folders with programs. Each folder should have a source code file named \"Main.c\" and folders for test files. Here is an example:";
-    echo "";
-    echo "hw00/";
-    echo "    CZE/";
-    echo "        0000_in.txt";
-    echo "        0000_out.txt";
-    echo "    custom/";
-    echo "        long_input_in.txt";
-    echo "        long_input_out.txt";
-    echo "    Main.c";
-    echo "hw01a/";
-    echo "    sample/";
-    echo "        0000_in.txt";
-    echo "        0000_out.txt";
-    echo "    Main.c";
-    echo "    sample.tgz";
-    echo "";
-    echo "With no options or arguments provided, the script attempts to compile, run and test all programs inside the working directory.";
 } ;
 
 process_option () {
