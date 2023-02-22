@@ -76,10 +76,10 @@ get_prefix_color () {
 test_results () {
     if [ -z "$program_action_name" ]; then
         if [ "$side_by_side_comparison" = true ]; then
-            output_difference=$(diff -y <(nl -n'ln' "$3") <(nl -n'ln' "$temporary_file_1") 2> /dev/null);
+            output_difference=$(diff --text -y <(nl -n'ln' "$3") <(nl -n'ln' "$temporary_file_1") 2> /dev/null);
             difference_status="$?";
         else
-            output_difference=$(diff "$3" "$temporary_file_1" 2> /dev/null);
+            output_difference=$(diff --text "$3" "$temporary_file_1" 2> /dev/null);
             difference_status="$?";
         fi;
     fi;
